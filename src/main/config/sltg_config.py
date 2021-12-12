@@ -6,17 +6,14 @@ Created on Thu Nov 25 21:43:34 2021
 """
 import datetime
 import os
-import logging
-import logging.config
 
-logging_path = os.path.split(os.path.realpath(__file__))[0] + os.sep + 'logging.conf'
-logging.config.fileConfig(logging_path)
-logger = logging.getLogger('detail')
 
 project_path = 'D:\sycode\SLTG\src\main'
 news_dir = 'D:\\hscode\\newslist\\'
 
 now_date = datetime.date.today().strftime('%Y-%m-%d')
+
+logging_path = os.path.split(os.path.realpath(__file__))[0] + os.sep + 'logging.conf'
 
 
 # tencentfact
@@ -28,7 +25,7 @@ tencentfact_dir = news_dir + 'TencentFact\\'
 tencentfact_spider = 'tencentFactSpider'
 
 
-# 网易
+# wy
 wy_dir = news_dir + 'wy\\'
 wy_url_list = {'domestic':['https://news.163.com/special/cm_guonei{}/?callback=data_callback'],
     'internation':['https://news.163.com/special/cm_guoji{}/?callback=data_callback'],
@@ -42,3 +39,7 @@ wy_spider = 'wySpider'
 sina_dir = news_dir + 'sina\\'
 sina_url = 'https://feed.mix.sina.com.cn/api/roll/get?pageid=153&lid=2509&k=&num=50&page='
 sina_spider = 'sinaSpider'
+
+
+# weibo
+weibo_config = os.path.split(os.path.realpath(__file__))[0] + os.sep + 'weibo-config.json1'
