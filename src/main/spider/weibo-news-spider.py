@@ -1,17 +1,17 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
+"""
+Created on Mon Oct 2 20:00:12 2021
 
+@author: styra
+"""
 import codecs
 import copy
 import csv
 import json
-import logging
-import logging.config
 import math
 import os
 import random
 import sys
-import warnings
 from collections import OrderedDict
 from datetime import date, datetime, timedelta
 from time import sleep
@@ -19,14 +19,22 @@ from time import sleep
 import requests
 from lxml import etree
 from tqdm import tqdm
+ 
+# 项目路径,将项目路径保存
+project_path = 'D:\sycode\SLTG\src\main'
+sys.path.append(project_path)
+
+from config import sltg_config as config
+from spider import newsSpiderDb as db
+
+import logging
+import logging.config
+import warnings
 
 warnings.filterwarnings("ignore")
-
-logging_path = os.path.split(
-    os.path.realpath(__file__))[0] + os.sep + 'logging.conf'
-logging.config.fileConfig(logging_path)
-logger = logging.getLogger('weibo')
-
+    
+logging.config.fileConfig(config.logging_path)
+logger = logging.getLogger('spider')
 
 class Weibo(object):
     def __init__(self, config):
@@ -1071,26 +1079,22 @@ class Weibo(object):
 
 def get_config():
     """获取config.json文件信息"""
-    config_path = os.path.split(
-        os.path.realpath(__file__))[0] + os.sep + 'config.json'
+    config_path = config.weibo_config
     if not os.path.isfile(config_path):
-        logger.warning(u'当前路径：%s 不存在配置文件config.json',
-                       (os.path.split(os.path.realpath(__file__))[0] + os.sep))
+        logger.warning(u'当前路径：%s 不存在配置文件config.json', config_path)
         sys.exit()
     try:
         with open(config_path, encoding='utf-8') as f:
-            config = json.loads(f.read())
-            return config
+            return json.loads(f.read())
     except ValueError:
-        logger.error(u'config.json 格式不正确，请参考 '
-                     u'https://github.com/dataabc/weibo-crawler#3程序设置')
+        logger.error(u'config.json文件格式不正确')
         sys.exit()
 
 
 def main():
     try:
-        config = get_config()
-        wb = Weibo(config)
+        weibo_config = get_config()
+        wb = Weibo(weibo_config)
         wb.start()  # 爬取微博信息
     except Exception as e:
         logger.exception(e)

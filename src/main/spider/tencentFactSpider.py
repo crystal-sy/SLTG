@@ -20,6 +20,15 @@ import time
 import js2py
 import urllib.parse
 
+import logging
+import logging.config
+import warnings
+
+warnings.filterwarnings('ignore')
+    
+logging.config.fileConfig(config.logging_path)
+logger = logging.getLogger('spider')
+
 def tencent_fact_process(url, news):
     detail = {}  # 创建一个字典，存放URL、title、newstime等信息
     detail['id'] = news['id']
@@ -43,14 +52,14 @@ def tencent_fact_process(url, news):
 
 def getDetectionType(explain):
     detection_type_list = {
-        "谣言" : 1, # 虚假
-        "疑似诈骗" : 2, # 疑似诈骗
-        "有失实" : 2, # 疑似诈骗
-        "确实如此" : 3, # 真实
-        "确有此事" : 3, # 真实
-        "尚无定论" : 4, # 待定
-        "分情况" : 5, # 分情况
-        "其他" : 6  # 其他
+        '谣言' : 1, # 虚假
+        '疑似诈骗' : 2, # 疑似诈骗
+        '有失实' : 2, # 疑似诈骗
+        '确实如此' : 3, # 真实
+        '确有此事' : 3, # 真实
+        '尚无定论' : 4, # 待定
+        '分情况' : 5, # 分情况
+        '其他' : 6  # 其他
         }
     detection_type = detection_type_list.get(explain)
     if detection_type == None :
@@ -78,7 +87,7 @@ def getTencentToken():
         tencentToken = urllib.parse.quote(ciphertext)
         return tencentToken, timestamp
     except Exception:
-        print('getTencentToken failed.')
+        logger.error(u'getTencentToken failed.')
         return '', ''
 
 def check_date(news_date) :
@@ -97,8 +106,8 @@ def news_process(news, news_url):
         #存储模块 保存到txt
         save_content(detail)
     except Exception as e:
-        print(news_url)
-        print(e) 
+        logger.error(u'tencent_fact_process url：%s 请求失败', news_url)
+        logger.error(e)
     
 def main():
     #使用ScalableBloomFilter模块，对获取的URL进行去重处理
@@ -132,7 +141,7 @@ def main():
                 
             if code == -1 :
                 if again_time > 3:
-                    print('get tencent token again_time over three')
+                    logger.error(u'get tencent token again_time over three.')
                     go_on = False
                     break
                 
