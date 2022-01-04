@@ -62,6 +62,25 @@ def insert_news_info(detail):
                 spider = detail['spider'], news_from = detail['from'])
     return execute_update_sql(sql)
 
+def insert_news_info_weibo(detail):
+    if detail == {}:
+        return 0
+    
+    sql = """select news_id from sys_news 
+            where news_id = '{id}'""".format(id = detail['id'])
+    result = execute_query_sql(sql)
+    if result != '' :
+        return 0
+    
+    sql = """INSERT INTO sys_news (news_id, news_title, news_url, news_text,
+            news_type, news_date, news_spider, news_from, is_file, create_time) 
+            value ( '{id}', '{title}', '{url}', '{text}', '15', '{date}', 
+            '{spider}', '{news_from}', '1', now())""".format(id = detail['id'], 
+                title = detail['topics'], url = detail['url'], 
+                text = detail['text'][:5000], date = detail['created_at'], 
+                spider = detail['spider'], news_from = detail['source'])
+    return execute_update_sql(sql)
+
 def execute_query_sql(sql):
     connection = pymysql.connect(**mysql_config)
     try:

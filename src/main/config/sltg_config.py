@@ -42,4 +42,14 @@ sina_spider = 'sinaSpider'
 
 
 # weibo
-weibo_config = os.path.split(os.path.realpath(__file__))[0] + os.sep + 'weibo-config.json1'
+weibo_config = os.path.split(os.path.realpath(__file__))[0] + os.sep + 'weibo-config.json'
+weibo_spider = news_dir + 'weibo' + os.sep 
+weibo_user_path = weibo_spider + 'users.csv'
+weibo_profile_url = 'https://m.weibo.cn/profile/'
+weibo_article_url = 'https://m.weibo.cn/status/'
+
+#piyao_org
+piyao_org_dir = news_dir + 'piyao_org\\'
+piyao_org_url = 'https://dawa.news.cn/nodeart/page?nid=11241459&pgnum={}&cnt=16&attr=&tp=1&orderby=1&callback='
+piyao_org_spider = 'piyaoOrgSpider'
+
