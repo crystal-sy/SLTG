@@ -92,7 +92,7 @@ def main():
     for key in config.wy_url_list.keys():
         page = 1
         go_on = True
-        while go_on and page < 2 :
+        while go_on :
             tail = ''
             if page != 1:
                 tail = '_0' + str(page)

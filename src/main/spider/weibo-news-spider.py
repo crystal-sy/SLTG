@@ -483,6 +483,6 @@ def main(sinceDate):
         logger.exception(e)
 
 if __name__ == '__main__':
-    # sinceDate = sys.argv[1]
-    sinceDate = '2022-01-04'
+    sinceDate = sys.argv[1]
+    # sinceDate = '2022-01-04'
     main(sinceDate)

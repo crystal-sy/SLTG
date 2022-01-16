@@ -112,7 +112,7 @@ def main():
     url_filter_list = []
     #使用BeautifulSoup抽取模块和存储模块
     tencentToken, timestamp = getTencentToken()
-    page = 0 #设置爬虫初始爬取的页码
+    page = -1 #设置爬虫初始爬取的页码
     again_time = 0
     go_on = True
     while go_on:
