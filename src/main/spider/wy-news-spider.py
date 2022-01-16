@@ -4,7 +4,6 @@ Created on Mon Nov 1 20:42:36 2021
 
 @author: styra
 """
-from pybloom_live import ScalableBloomFilter # 用于URL去重的
 from bs4 import BeautifulSoup as bs #用于数据抽取
 import requests
 import json
@@ -66,7 +65,7 @@ def news_process(wy_news, wy_news_url, wy_newsDate):
         #存储模块 保存到txt
         save_content(wy_content)
     except Exception as e:
-        logger.error(u'wy_news_process url：%s 请求失败', wy_news_url)
+        logger.error(u'wy_news_process url: %s bad request.', wy_news_url)
         logger.error(e)
         
 def check_same_date(newsDate):
@@ -84,12 +83,11 @@ def get_date(news_time, key):
         newsDateArray = time.strptime(news_time, to_format)
         return time.strftime('%Y-%m-%d', newsDateArray)
     except Exception as e:
-        logger.error(u'wy_news_time：%s 转换失败', news_time)
+        logger.error(u'wy_news_time：%s convert failed. ', news_time)
         logger.error(e)
 
 def main():
-    #使用ScalableBloomFilter模块，对获取的URL进行去重处理
-    urlbloomfilter = ScalableBloomFilter(initial_capacity=100, error_rate=0.001, mode=ScalableBloomFilter.LARGE_SET_GROWTH)
+    url_filter_list = []
     #以API为index开始获取url列表
     for key in config.wy_url_list.keys():
         page = 1
@@ -108,10 +106,11 @@ def main():
                     if not check_same_date(wy_newsDate):
                        go_on = False
                        break
-                
+
+                    # 查重
                     wy_news_url = wy_news['docurl'] 
-                    if wy_news_url not in urlbloomfilter:
-                        urlbloomfilter.add(wy_news_url) #将爬取过的URL放入urlbloomfilter中
+                    if wy_news_url not in url_filter_list:
+                        url_filter_list.append(wy_news_url) #将爬取过的URL放入list中
                         news_process(wy_news, wy_news_url, wy_newsDate)
             page += 1
         

@@ -4,7 +4,6 @@ Created on Mon Nov 8 16:47:09 2021
 
 @author: styra
 """
-from pybloom_live import ScalableBloomFilter # 用于URL去重的
 from bs4 import BeautifulSoup as bs #用于数据抽取
 import requests
 import json
@@ -76,8 +75,7 @@ def check_date(newsDate):
         return False
 
 def main():
-    #使用ScalableBloomFilter模块，对获取的URL进行去重处理
-    urlbloomfilter = ScalableBloomFilter(initial_capacity=100, error_rate=0.001, mode=ScalableBloomFilter.LARGE_SET_GROWTH)
+    url_filter_list = []
     page = 1 #设置爬虫初始爬取的页码
     #使用BeautifulSoup抽取模块和存储模块
     #设置爬取页面的上限，
@@ -98,10 +96,9 @@ def main():
                     go_on = False
                     break
                 
-                # 查重，从new中提取URL，并利用ScalableBloomFilter查重
                 news_url = news['url']
-                if news_url not in urlbloomfilter:
-                    urlbloomfilter.add(news_url) #将爬取过的URL放入urlbloomfilter中
+                if news_url not in url_filter_list:
+                    url_filter_list.append(news_url) #将爬取过的URL放入list中
                     news_process(news, newsDate)
             page+=1 #页码自加1
         

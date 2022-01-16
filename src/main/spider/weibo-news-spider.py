@@ -373,7 +373,7 @@ class Weibo(object):
                                 self.user_config['since_date'], '%Y-%m-%d')
                             if created_at != since_date:
                                 self.go_on = False
-                                break;
+                                break
                                 
                             if self.is_pinned_weibo(w):
                                 continue
