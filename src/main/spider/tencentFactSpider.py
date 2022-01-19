@@ -68,12 +68,13 @@ def getDetectionType(explain):
     
 
 def save_content(detail):
-    news_dir = config.tencentfact_dir + '\\' + detail['date'] + '\\'
+    news_dir = config.tencentfact_dir + detail['date'] + os.sep
     dir_is_Exists = os.path.exists(news_dir)
     if not dir_is_Exists:
         os.makedirs(news_dir) 
     fp = open(news_dir + detail['id'] +'.txt', 'w+', encoding = 'UTF-8')
-    fp.write(json.dumps(detail['artibody'], ensure_ascii = False))
+    content = detail['artibody'].replace('\n', '').replace('\r', '')
+    fp.write(json.dumps(content, ensure_ascii = False))
     fp.close()
     
 def getTencentToken():

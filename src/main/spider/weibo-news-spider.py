@@ -371,9 +371,11 @@ class Weibo(object):
                                 wb['created_at'], '%Y-%m-%d')
                             since_date = datetime.strptime(
                                 self.user_config['since_date'], '%Y-%m-%d')
-                            if created_at != since_date:
+                            if created_at < since_date:
                                 self.go_on = False
                                 break
+                            elif created_at > since_date:
+                                continue
                                 
                             if self.is_pinned_weibo(w):
                                 continue
@@ -424,7 +426,7 @@ class Weibo(object):
             self.get_user_info()
             random_pages = random.randint(1, 10)
             page = self.start_page
-            while self.go_on and self.got_count < 20:
+            while self.go_on :
                 self.get_one_page(page)
                 page += 1
 
@@ -484,5 +486,4 @@ def main(sinceDate):
 
 if __name__ == '__main__':
     sinceDate = sys.argv[1]
-    # sinceDate = '2022-01-04'
     main(sinceDate)

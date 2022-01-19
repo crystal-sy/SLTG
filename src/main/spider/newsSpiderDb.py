@@ -73,14 +73,16 @@ def insert_news_info_weibo(detail):
         return 0
     
     topics = detail['topics']
+    titleFlag = 0
     if topics == '' :
         topics = detail['text'][:50] + "..."
+        titleFlag = 1
     
-    sql = """INSERT INTO sys_news (news_id, news_title, news_url, news_text,
+    sql = """INSERT INTO sys_news (news_id, news_title, have_title, news_url, news_text,
             news_type, news_date, news_spider, news_from, is_file, create_time) 
-            value ( '{id}', '{title}', '{url}', '{text}', '15', '{date}', 
+            value ( '{id}', '{title}', '{haveTitle}', '{url}', '{text}', '15', '{date}', 
             '{spider}', '{news_from}', '1', now())""".format(id = detail['id'], 
-                title = topics, url = detail['url'], 
+                title = topics, haveTitle = titleFlag, url = detail['url'], 
                 text = detail['text'][:5000], date = detail['created_at'], 
                 spider = detail['spider'], news_from = detail['source'])
     return execute_update_sql(sql)

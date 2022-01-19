@@ -9,7 +9,7 @@ import os
 
 
 project_path = 'D:\sycode\SLTG\src\main'
-news_dir = 'D:\\hscode\\newslist\\'
+news_dir = 'E:\\newslist' + os.sep 
 
 now_date = datetime.date.today().strftime('%Y-%m-%d')
 
@@ -21,12 +21,12 @@ tencentfact_sign = 'sgn51n6r6q97o6g3'
 tencentfact_key = 'jzhotdata'
 tencentfact_url = 'https://vp.fact.qq.com/loadmore?artnum=0&token={}&page={}&stopic=&_={}&callback=jsonp'
 tencentfact_news_url = 'https://vp.fact.qq.com/article?id={}'
-tencentfact_dir = news_dir + 'TencentFact\\'
+tencentfact_dir = news_dir + 'TencentFact' + os.sep 
 tencentfact_spider = 'tencentFactSpider'
 
 
 # wy
-wy_dir = news_dir + 'wy\\'
+wy_dir = news_dir + 'wy' + os.sep 
 wy_url_list = {'domestic':['https://news.163.com/special/cm_guonei{}/?callback=data_callback'],
     'internation':['https://news.163.com/special/cm_guoji{}/?callback=data_callback'],
     'tech':['https://tech.163.com/special/00097UHL/tech_datalist{}.js?callback=data_callback'],
@@ -36,7 +36,7 @@ wy_spider = 'wySpider'
 
 
 # sina
-sina_dir = news_dir + 'sina\\'
+sina_dir = news_dir + 'sina' + os.sep 
 sina_url = 'https://feed.mix.sina.com.cn/api/roll/get?pageid=153&lid=2509&k=&num=50&page='
 sina_spider = 'sinaSpider'
 
@@ -49,7 +49,7 @@ weibo_profile_url = 'https://m.weibo.cn/profile/'
 weibo_article_url = 'https://m.weibo.cn/status/'
 
 #piyao_org
-piyao_org_dir = news_dir + 'piyao_org\\'
+piyao_org_dir = news_dir + 'piyao_org' + os.sep 
 piyao_org_url = 'https://dawa.news.cn/nodeart/page?nid=11241459&pgnum={}&cnt=16&attr=&tp=1&orderby=1&callback='
 piyao_org_spider = 'piyaoOrgSpider'
 

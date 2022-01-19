@@ -44,12 +44,13 @@ def news_content_process(news, newsDate):
     return detail
 
 def save_content(detail):
-    news_dir = config.piyao_org_dir + config.now_date + '\\'
+    news_dir = config.piyao_org_dir + detail['date'] + os.sep
     dir_is_Exists = os.path.exists(news_dir)
     if not dir_is_Exists:
         os.makedirs(news_dir) 
     fp = open(news_dir + str(detail['id']) +'.txt', 'w+', encoding='UTF-8')
-    fp.write(json.dumps(detail['artibody'], ensure_ascii=False))
+    content = detail['artibody'].replace('\n', '').replace('\r', '')
+    fp.write(json.dumps(content, ensure_ascii=False))
     fp.close()
     
 def news_process(news, newsDate):
@@ -62,14 +63,8 @@ def news_process(news, newsDate):
     except Exception as e:
         logger.error(u'piyao_org_process url: %s 请求失败', news['LinkUrl'])
         logger.error(e)
-    
-def check_date(newsDate):
-    if config.now_date == newsDate:
-        return True
-    else:
-        return False
 
-def main():
+def main(sinceDate):
     url_filter_list = []
     page = 1 #设置爬虫初始爬取的页码
     #使用BeautifulSoup抽取模块和存储模块
@@ -86,10 +81,11 @@ def main():
             for news in newsList:
                 newsDateArray = time.strptime(news['PubTime'], '%Y-%m-%d %H:%M:%S')
                 newsDate = time.strftime('%Y-%m-%d', newsDateArray)
-                
-                if not check_date(newsDate) : 
+                if newsDate < sinceDate:
                     go_on = False
                     break
+                elif newsDate > sinceDate:
+                    continue
                 
                 # 查重
                 news_url = news['LinkUrl']
@@ -99,4 +95,5 @@ def main():
             page+=1 #页码自加1
         
 if __name__ == '__main__':
-    main()
+    sinceDate = sys.argv[1]
+    main(sinceDate)

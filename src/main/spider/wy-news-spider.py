@@ -49,12 +49,13 @@ def news_content_process(news, url, wy_newsDate):
 
 
 def save_content(detail):
-    news_dir = config.wy_dir + config.now_date + '\\'
+    news_dir = config.wy_dir + detail['date'] + os.sep
     dir_is_Exists = os.path.exists(news_dir)
     if not dir_is_Exists:
         os.makedirs(news_dir) 
     fp = open(news_dir + detail['id']  +'.txt', 'w+', encoding = 'UTF-8')
-    fp.write(json.dumps(detail['artibody'], ensure_ascii = False))
+    content = detail['artibody'].replace('\n', '').replace('\r', '')
+    fp.write(json.dumps(content, ensure_ascii = False))
     fp.close()
     
 def news_process(wy_news, wy_news_url, wy_newsDate):
@@ -66,13 +67,7 @@ def news_process(wy_news, wy_news_url, wy_newsDate):
         save_content(wy_content)
     except Exception as e:
         logger.error(u'wy_news_process url: %s bad request.', wy_news_url)
-        logger.error(e)
-        
-def check_same_date(newsDate):
-    if config.now_date == newsDate:
-        return True
-    else:
-        return False
+        logger.error(e)        
     
 def get_date(news_time, key):
     try:
@@ -86,7 +81,7 @@ def get_date(news_time, key):
         logger.error(u'wy_news_time：%s convert failed. ', news_time)
         logger.error(e)
 
-def main():
+def main(sinceDate):
     url_filter_list = []
     #以API为index开始获取url列表
     for key in config.wy_url_list.keys():
@@ -103,9 +98,11 @@ def main():
                 data_jsons = json.loads(wy_content.replace('data_callback(', '').replace(')', '').encode())
                 for wy_news in data_jsons:
                     wy_newsDate = get_date(wy_news['time'], key)
-                    if not check_same_date(wy_newsDate):
-                       go_on = False
-                       break
+                    if wy_newsDate < sinceDate:
+                        go_on = False
+                        break
+                    elif wy_newsDate > sinceDate:
+                        continue
 
                     # 查重
                     wy_news_url = wy_news['docurl'] 
@@ -115,4 +112,5 @@ def main():
             page += 1
         
 if __name__ == '__main__':
-    main()
+    sinceDate = sys.argv[1]
+    main(sinceDate)
