@@ -131,6 +131,10 @@ def main():
             if code == 0:
                 #将获取的数据json化
                 factList = data_json.get('content') #获取result节点下data节点中的数据，此数据为新闻详情页的信息
+                if len(factList) == 0 :
+                    go_on = False
+                    break
+                
                 #从新闻详情页信息列表news中，使用for循环遍历每一个新闻详情页的信息
                 for news in factList:  
                     if check_date(news['date'], last_date):
@@ -141,6 +145,8 @@ def main():
                     if news_url not in url_filter_list:
                         url_filter_list.append(news_url) #将爬取过的URL放入list中
                         news_process(news, news_url)
+                        
+                logger.info(u'tencent_fact_process page：%s 页处理完成', page)
                 page += 1 #页码自加1
                 
             if code == -1 :

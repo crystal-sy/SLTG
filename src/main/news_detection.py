@@ -6,14 +6,17 @@ Created on Mon Feb 10 21:10:59 2021
 """
 import numpy as np
 import jieba
-from keras.models import load_model
+
+import os
+os.environ["CUDA_VISIBLE_DEVICES"]="-1"    
+from tensorflow.keras.models import load_model
 import time
-import re
-from keras.preprocessing import sequence
+import re 
+from tensorflow.keras.preprocessing import sequence
 import sys
 
 
-voc_dim = 128 # word的向量维度
+voc_dim = 256 # word的向量维度
 data_dir = 'D:\\hscode\\data\\'
 result_dir = 'D:\\hscode\\result\\'
 
@@ -94,9 +97,9 @@ class analysis():
     
     def get_w2dic(self, version):
         if version is None:
-            w2dic = np.load(result_dir + 'w2dic.npy').item()
+            w2dic = np.load(result_dir + 'w2dic.npy', allow_pickle=True).item()
         else :
-            w2dic = np.load(result_dir + version + '\\w2dic.npy').item()
+            w2dic = np.load(result_dir + version + '\\w2dic.npy', allow_pickle=True).item()
         return w2dic
     
     def data2index(self, w2indx, text):
@@ -157,8 +160,7 @@ if __name__ == '__main__':
     contentFile = sys.argv[1]
     commentFile = sys.argv[2]
     test = analysis(contentFile, commentFile)
-    result = test.main()
-    print(result)
+    print(test.main())
         
 
 
