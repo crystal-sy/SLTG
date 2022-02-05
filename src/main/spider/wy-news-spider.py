@@ -71,6 +71,10 @@ def news_process(wy_news, wy_news_url, wy_newsDate):
         # 新闻检测
         rumor_predict = detection.analysis(filePath, '')
         wy_content['detection_percent'] = rumor_predict.main()
+        if len(wy_content['detection_percent']) > 10:
+            print(wy_content['detection_percent'])
+            wy_content['detection_percent'] = ''
+            
         # 存数据库
         db.insert_news_info(wy_content)
     except Exception as e:
@@ -130,5 +134,5 @@ def main(sinceDate):
         
 if __name__ == '__main__':
     #sinceDate = sys.argv[1]
-    sinceDate = '2022-01-01'
+    sinceDate = '2022-02-06'
     main(sinceDate)

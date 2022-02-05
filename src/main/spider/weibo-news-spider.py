@@ -425,6 +425,10 @@ class Weibo(object):
         # 新闻检测
         rumor_predict = detection.analysis(wb['text'], '', False)
         wb['detection_percent'] = rumor_predict.main()
+        if len(wb['detection_percent']) > 10:
+            print(wb['detection_percent'])
+            wb['detection_percent'] = ''
+            
         db.insert_news_info_weibo(wb)
 
     def get_pages(self):
@@ -493,5 +497,5 @@ def main(sinceDate):
 
 if __name__ == '__main__':
     #sinceDate = sys.argv[1]
-    sinceDate = '2022-02-05'
+    sinceDate = '2021-10-01'
     main(sinceDate)

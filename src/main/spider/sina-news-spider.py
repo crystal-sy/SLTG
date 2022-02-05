@@ -71,6 +71,9 @@ def news_process(news, newsDate):
         # 新闻检测
         rumor_predict = detection.analysis(filePath, '')
         sina_content['detection_percent'] = rumor_predict.main()
+        if len(sina_content['detection_percent']) > 10:
+            print(sina_content['detection_percent'])
+            sina_content['detection_percent'] = ''
         # 存数据库
         db.insert_news_info(sina_content)
     except Exception as e:
@@ -118,5 +121,5 @@ def main(sinceDate):
         
 if __name__ == '__main__':
     #sinceDate = sys.argv[1]
-    sinceDate = '2022-02-04'
+    sinceDate = '2021-07-01'
     main(sinceDate)

@@ -66,6 +66,9 @@ def news_process(news, newsDate):
         # 新闻检测
         rumor_predict = detection.analysis(filePath, '')
         piyao_org_content['detection_percent'] = rumor_predict.main()
+        if len(piyao_org_content['detection_percent']) > 10:
+            print(piyao_org_content['detection_percent'])
+            piyao_org_content['detection_percent'] = ''
         # 存数据库
         db.insert_news_info(piyao_org_content)
     except Exception as e:
@@ -113,5 +116,5 @@ def main(sinceDate):
         
 if __name__ == '__main__':
     #sinceDate = sys.argv[1]
-    sinceDate = '2022-01-01'
+    sinceDate = '2021-01-01'
     main(sinceDate)
