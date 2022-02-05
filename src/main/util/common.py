@@ -16,8 +16,8 @@ def readFile(filename):
     return contentStr
 
 
-def jiebaTdidf(file):
-    tf_idf_words = jieba.analyse.extract_tags(file, topK=3, withWeight=True, 
+def jiebaTdidf(content):
+    tf_idf_words = jieba.analyse.extract_tags(content, topK=3, withWeight=True, 
                                               allowPOS=('n','nr','ns'))
     themes = []
     for theme in tf_idf_words:
@@ -26,6 +26,9 @@ def jiebaTdidf(file):
 
 def getNewsTheme(file):
     return jiebaTdidf(readFile(file))
+
+def getNewsThemeWithContent(content):
+    return jiebaTdidf(content)
 
  
 if __name__ == '__main__':

@@ -21,9 +21,10 @@ data_dir = 'D:\\hscode\\data\\'
 result_dir = 'D:\\hscode\\result\\'
 
 class analysis():
-    def __init__(self, content, comment):
+    def __init__(self, content, comment, isFile = True):
         self.content = content
         self.comment = comment
+        self.isFile = isFile
         
     def loadfile(self, content, comment):
         #文件输入
@@ -116,7 +117,10 @@ class analysis():
 
     def transfer_word2vec(self, content, comment, version):
         # 1、获取文件数据
-        content_text, comment_text = self.loadfile(content, comment);
+        if self.isFile :
+            content_text, comment_text = self.loadfile(content, comment);
+        else : 
+            content_text, comment_text = content, comment
         # 2、将文件数据jieba分词
         content_text, comment_text = self.file_jieba_cut(content_text, comment_text)
         # 3、对数据进行预处理，去除停顿词

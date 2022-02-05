@@ -16,6 +16,8 @@ sys.path.append(project_path)
 
 from config import sltg_config as config
 from spider import newsSpiderDb as db
+from util import common as util
+import news_detection as detection
 
 import logging
 import logging.config
@@ -37,7 +39,6 @@ def news_content_process(news, url, wy_newsDate):
     detail['title'] = wy_title.text  # 将新闻标题以文本形式存入detail字典中的相应键值中
     news_content = html.find(class_='post_body')  # 使用find方法，获取新闻网页中的article信息
     detail['artibody'] = news_content.text
-    detail['news_type'] = 15
     detail['date'] = wy_newsDate
     detail['spider'] = config.wy_spider
     source = news.get('source')
@@ -53,18 +54,25 @@ def save_content(detail):
     dir_is_Exists = os.path.exists(news_dir)
     if not dir_is_Exists:
         os.makedirs(news_dir) 
-    fp = open(news_dir + detail['id']  +'.txt', 'w+', encoding = 'UTF-8')
+    file = news_dir + detail['id']  +'.txt'
+    fp = open(file, 'w+', encoding = 'UTF-8')
     content = detail['artibody'].replace('\n', '').replace('\r', '')
     fp.write(json.dumps(content, ensure_ascii = False))
     fp.close()
+    return file
     
 def news_process(wy_news, wy_news_url, wy_newsDate):
     try:
         wy_content = news_content_process(wy_news, wy_news_url, wy_newsDate)
+        #存储模块 保存到txt
+        filePath = save_content(wy_content)
+        # 新闻关键词
+        wy_content['news_theme'] = util.getNewsTheme(filePath)
+        # 新闻检测
+        rumor_predict = detection.analysis(filePath, '')
+        wy_content['detection_percent'] = rumor_predict.main()
         # 存数据库
         db.insert_news_info(wy_content)
-        #存储模块 保存到txt
-        save_content(wy_content)
     except Exception as e:
         logger.error(u'wy_news_process url: %s bad request.', wy_news_url)
         logger.error(e)        
@@ -96,21 +104,31 @@ def main(sinceDate):
             #将获取的数据json化
                 wy_content = data.content.decode(encoding='UTF-8', errors='ignore')
                 data_jsons = json.loads(wy_content.replace('data_callback(', '').replace(')', '').encode())
+                if len(data_jsons) == 0 :
+                    go_on = False
+                    break
+                
                 for wy_news in data_jsons:
                     wy_newsDate = get_date(wy_news['time'], key)
                     if wy_newsDate < sinceDate:
                         go_on = False
                         break
-                    elif wy_newsDate > sinceDate:
-                        continue
 
                     # 查重
                     wy_news_url = wy_news['docurl'] 
                     if wy_news_url not in url_filter_list:
                         url_filter_list.append(wy_news_url) #将爬取过的URL放入list中
                         news_process(wy_news, wy_news_url, wy_newsDate)
-            page += 1
+                        
+                logger.info(u'wy_process key: %s, page：%s 页处理完成', key, page)
+                page += 1
+            
+            if data.status_code != 200:
+                logger.error(u'wy_process key: %s, page：%s 页处理失败', key, page)
+                go_on = False
+                break
         
 if __name__ == '__main__':
-    sinceDate = sys.argv[1]
+    #sinceDate = sys.argv[1]
+    sinceDate = '2022-01-01'
     main(sinceDate)

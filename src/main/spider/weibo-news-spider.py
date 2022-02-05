@@ -22,6 +22,8 @@ sys.path.append(project_path)
 
 from config import sltg_config as sltg_config
 from spider import newsSpiderDb as db
+from util import common as util
+import news_detection as detection
 
 import logging
 import logging.config
@@ -418,6 +420,11 @@ class Weibo(object):
                 wb[k] = v
         wb['spider'] = 'weibo_' + wb['screen_name']
         wb['url'] = sltg_config.weibo_article_url + str(wb['id'])
+        # 新闻关键词
+        wb['news_theme'] = util.getNewsThemeWithContent(wb['text'])
+        # 新闻检测
+        rumor_predict = detection.analysis(wb['text'], '', False)
+        wb['detection_percent'] = rumor_predict.main()
         db.insert_news_info_weibo(wb)
 
     def get_pages(self):
@@ -426,7 +433,7 @@ class Weibo(object):
             self.get_user_info()
             random_pages = random.randint(1, 10)
             page = self.start_page
-            while self.go_on :
+            while self.go_on:
                 self.get_one_page(page)
                 page += 1
 
@@ -485,5 +492,6 @@ def main(sinceDate):
         logger.exception(e)
 
 if __name__ == '__main__':
-    sinceDate = sys.argv[1]
+    #sinceDate = sys.argv[1]
+    sinceDate = '2022-02-05'
     main(sinceDate)

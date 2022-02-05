@@ -17,6 +17,8 @@ sys.path.append(project_path)
 
 from config import sltg_config as config
 from spider import newsSpiderDb as db
+from util import common as util
+import news_detection as detection
 
 import logging
 import logging.config
@@ -40,7 +42,6 @@ def news_content_process(news, newsDate):
     # 由于不同的新闻详情页之间使用了不同的标签元素，直接抽取可能会报错，所以此处使用判断语句来进行区分爬取
     detail['date'] = newsDate
     detail['spider'] = config.piyao_org_spider
-    detail['news_type'] = 15
     return detail
 
 def save_content(detail):
@@ -48,18 +49,25 @@ def save_content(detail):
     dir_is_Exists = os.path.exists(news_dir)
     if not dir_is_Exists:
         os.makedirs(news_dir) 
-    fp = open(news_dir + str(detail['id']) +'.txt', 'w+', encoding='UTF-8')
+    file = news_dir + str(detail['id']) +'.txt'
+    fp = open(file, 'w+', encoding='UTF-8')
     content = detail['artibody'].replace('\n', '').replace('\r', '')
     fp.write(json.dumps(content, ensure_ascii=False))
     fp.close()
+    return file
     
 def news_process(news, newsDate):
     try:
         piyao_org_content = news_content_process(news, newsDate)
+        #存储模块 保存到txt
+        filePath = save_content(piyao_org_content)
+        # 新闻关键词
+        piyao_org_content['news_theme'] = util.getNewsTheme(filePath)
+        # 新闻检测
+        rumor_predict = detection.analysis(filePath, '')
+        piyao_org_content['detection_percent'] = rumor_predict.main()
         # 存数据库
         db.insert_news_info(piyao_org_content)
-        #存储模块 保存到txt
-        save_content(piyao_org_content)
     except Exception as e:
         logger.error(u'piyao_org_process url: %s 请求失败', news['LinkUrl'])
         logger.error(e)
@@ -77,6 +85,10 @@ def main(sinceDate):
             #将获取的数据json化
             data_json = json.loads(data.content)
             newsList = data_json.get('data').get('list') #获取result节点下data节点中的数据，此数据为新闻详情页的信息
+            if len(newsList) == 0 :
+                go_on = False
+                break
+            
             #从新闻详情页信息列表news中，使用for循环遍历每一个新闻详情页的信息
             for news in newsList:
                 newsDateArray = time.strptime(news['PubTime'], '%Y-%m-%d %H:%M:%S')
@@ -84,16 +96,22 @@ def main(sinceDate):
                 if newsDate < sinceDate:
                     go_on = False
                     break
-                elif newsDate > sinceDate:
-                    continue
                 
                 # 查重
                 news_url = news['LinkUrl']
                 if news_url not in url_filter_list:
                     url_filter_list.append(news_url) #将爬取过的URL放入list中
                     news_process(news, newsDate)
+                    
+            logger.info(u'piyao_process page：%s 页处理完成', page)
             page+=1 #页码自加1
+            
+        if data.status_code != 200:
+            logger.error(u'piyao_process page：%s 页处理失败', page)
+            go_on = False
+            break
         
 if __name__ == '__main__':
-    sinceDate = sys.argv[1]
+    #sinceDate = sys.argv[1]
+    sinceDate = '2022-01-01'
     main(sinceDate)

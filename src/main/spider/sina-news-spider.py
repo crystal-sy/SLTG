@@ -17,6 +17,8 @@ sys.path.append(project_path)
 
 from config import sltg_config as config
 from spider import newsSpiderDb as db
+from util import common as util
+import news_detection as detection
 
 import logging
 import logging.config
@@ -43,7 +45,6 @@ def news_content_process(news, newsDate):
         detail['from'] = date_source.a.text  # 抽取'a'标签中新闻来源信息
     else:
         detail['from'] = date_source('span')[1].text  # 抽取'span'标签中包含的新闻来源信息
-    detail['news_type'] = 15
     detail['date'] = newsDate
     detail['spider'] = config.sina_spider
     return detail
@@ -53,18 +54,25 @@ def save_content(detail):
     dir_is_Exists = os.path.exists(news_dir)
     if not dir_is_Exists:
         os.makedirs(news_dir) 
-    fp = open(news_dir + detail['id'] +'.txt', 'w+', encoding='UTF-8')
+    file = news_dir + detail['id'] +'.txt'
+    fp = open(file, 'w+', encoding='UTF-8')
     content = detail['artibody'].replace('\n', '').replace('\r', '')
     fp.write(json.dumps(content, ensure_ascii=False))
     fp.close()
+    return file
     
 def news_process(news, newsDate):
     try:
         sina_content = news_content_process(news, newsDate)
+        #存储模块 保存到txt
+        filePath = save_content(sina_content)
+        # 新闻关键词
+        sina_content['news_theme'] = util.getNewsTheme(filePath)
+        # 新闻检测
+        rumor_predict = detection.analysis(filePath, '')
+        sina_content['detection_percent'] = rumor_predict.main()
         # 存数据库
         db.insert_news_info(sina_content)
-        #存储模块 保存到txt
-        save_content(sina_content)
     except Exception as e:
         logger.error(u'sina_news_process url：%s 请求失败', news['url'])
         logger.error(e)
@@ -82,6 +90,10 @@ def main(sinceDate):
             #将获取的数据json化
             data_json = json.loads(data.content)
             newsList = data_json.get('result').get('data') #获取result节点下data节点中的数据，此数据为新闻详情页的信息
+            if len(newsList) == 0 :
+                go_on = False
+                break
+                
             #从新闻详情页信息列表news中，使用for循环遍历每一个新闻详情页的信息
             for news in newsList:
                 newsDateInt = int(news['ctime'])
@@ -90,15 +102,21 @@ def main(sinceDate):
                 if newsDate < sinceDate:
                     go_on = False
                     break
-                elif newsDate > sinceDate:
-                    continue
                 
                 news_url = news['url']
                 if news_url not in url_filter_list:
                     url_filter_list.append(news_url) #将爬取过的URL放入list中
                     news_process(news, newsDate)
+            
+            logger.info(u'sina_process page：%s 页处理完成', page)
             page+=1 #页码自加1
+            
+        if data.status_code != 200:
+            logger.error(u'sina_process page：%s 页处理失败', page)
+            go_on = False
+            break
         
 if __name__ == '__main__':
-    sinceDate = sys.argv[1]
+    #sinceDate = sys.argv[1]
+    sinceDate = '2022-02-04'
     main(sinceDate)
