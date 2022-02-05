@@ -15,6 +15,7 @@ sys.path.append(project_path)
 
 from config import sltg_config as config
 from spider import newsSpiderDb as db
+from util import common as util
 import time
 import js2py
 import urllib.parse
@@ -44,9 +45,7 @@ def tencent_fact_process(url, news):
     detail['from'] = checkContent.find_all('span', recursive=False)[1].text.replace('来源 :', '')
     detail['original_url'] = checkContent.find('a')['href']
     detail['spider'] = config.tencentfact_spider
-    detail['news_type'] = ''
     detail['detection_type'] = getDetectionType(news['explain'])
-    detail['news_type'] = 15
     return detail
 
 def getDetectionType(explain):
@@ -72,10 +71,14 @@ def save_content(detail):
     dir_is_Exists = os.path.exists(news_dir)
     if not dir_is_Exists:
         os.makedirs(news_dir) 
-    fp = open(news_dir + detail['id'] +'.txt', 'w+', encoding = 'UTF-8')
+    file = news_dir + detail['id'] +'.txt'
+    fp = open(file, 'w+', encoding = 'UTF-8')
     content = detail['artibody'].replace('\n', '').replace('\r', '')
+    if (content == '') :
+        content = detail['title']
     fp.write(json.dumps(content, ensure_ascii = False))
     fp.close()
+    return file
     
 def getTencentToken():
     try:
@@ -90,8 +93,7 @@ def getTencentToken():
         logger.error(u'getTencentToken failed.')
         return '', ''
 
-def check_date(news_date) :
-    last_date = db.query_news_knowledge_last_date(config.tencentfact_spider)
+def check_date(news_date, last_date) :
     if last_date != '' and last_date >= news_date:
         return True
     else:
@@ -101,10 +103,12 @@ def news_process(news, news_url):
     try:
         #抽取模块使用bs4
         detail = tencent_fact_process(news_url, news)
+        #存储模块 保存到txt
+        filePath = save_content(detail)
+        # 新闻关键词
+        detail['news_theme'] = util.getNewsTheme(filePath)
         # 存数据库
         db.insert_news_knowledge(detail)
-        #存储模块 保存到txt
-        save_content(detail)
     except Exception as e:
         logger.error(u'tencent_fact_process url：%s 请求失败', news_url)
         logger.error(e)
@@ -116,6 +120,7 @@ def main():
     page = -1 #设置爬虫初始爬取的页码
     again_time = 0
     go_on = True
+    last_date = db.query_news_knowledge_last_date(config.tencentfact_spider)
     while go_on:
         tencentfact_url = config.tencentfact_url.format(tencentToken, page, timestamp)
         data = requests.get(tencentfact_url) #拼接URL，并获取索引页面信息
@@ -128,7 +133,7 @@ def main():
                 factList = data_json.get('content') #获取result节点下data节点中的数据，此数据为新闻详情页的信息
                 #从新闻详情页信息列表news中，使用for循环遍历每一个新闻详情页的信息
                 for news in factList:  
-                    if check_date(news['date']):
+                    if check_date(news['date'], last_date):
                         go_on = False
                         break
                     # 查重

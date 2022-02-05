@@ -1,7 +1,10 @@
 # -*- coding: utf-8 -*-
 """
+Created on Sat Feb  5 13:30:33 2022
+
 @author: styra
 """
+
 import jieba.analyse
 import sys
 
@@ -21,7 +24,10 @@ def jiebaTdidf(file):
         themes.append(theme[0])
     return ','.join(themes)
 
+def getNewsTheme(file):
+    return jiebaTdidf(readFile(file))
+
  
 if __name__ == '__main__':
     file = sys.argv[1]
-    print(jiebaTdidf(readFile(file)))
+    print(getNewsTheme(file))

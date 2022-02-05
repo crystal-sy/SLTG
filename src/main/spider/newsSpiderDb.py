@@ -32,12 +32,12 @@ def insert_news_knowledge(detail):
         return 0
     
     sql = """INSERT INTO sys_news_knowledge (news_id, news_title, news_url, 
-            news_type, detection_type, detection_result, news_date, 
+            news_theme, detection_type, detection_result, news_date, 
             news_spider, news_from, original_url, create_time) value ( 
-            '{id}', '{title}', '{url}', '{news_type}', '{detection_type}', 
+            '{id}', '{title}', '{url}', '{news_theme}', '{detection_type}', 
             '{result}', '{date}', '{spider}', '{news_from}',
             '{original_url}', now())""".format(id = detail['id'], title = detail['title'],
-                url = detail['url'], news_type = detail['news_type'], 
+                url = detail['url'], news_theme = detail['news_theme'], 
                 detection_type = detail['detection_type'], result = detail['result'], 
                 date = detail['date'], spider = detail['spider'],
                 news_from = detail['from'], original_url = detail['original_url'])
@@ -54,11 +54,11 @@ def insert_news_info(detail):
         return 0
     
     sql = """INSERT INTO sys_news (news_id, news_title, news_url, 
-            news_type, news_date, news_spider, news_from, create_time) 
-            value ( '{id}', '{title}', '{url}', '{news_type}', '{date}', 
+            news_theme, news_date, news_spider, news_from, create_time) 
+            value ( '{id}', '{title}', '{url}', '{news_theme}', '{date}', 
             '{spider}', '{news_from}', now())""".format(id = detail['id'], 
                 title = detail['title'], url = detail['url'], 
-                news_type = detail['news_type'], date = detail['date'], 
+                news_theme = detail['news_theme'], date = detail['date'], 
                 spider = detail['spider'], news_from = detail['from'])
     return execute_update_sql(sql)
 
@@ -79,11 +79,11 @@ def insert_news_info_weibo(detail):
         titleFlag = 1
     
     sql = """INSERT INTO sys_news (news_id, news_title, have_title, news_url, news_text,
-            news_type, news_date, news_spider, news_from, is_file, create_time) 
-            value ( '{id}', '{title}', '{haveTitle}', '{url}', '{text}', '15', '{date}', 
+            news_theme, news_date, news_spider, news_from, is_file, create_time) 
+            value ( '{id}', '{title}', '{haveTitle}', '{url}', '{text}', '{news_theme}', '{date}', 
             '{spider}', '{news_from}', '1', now())""".format(id = detail['id'], 
                 title = topics, haveTitle = titleFlag, url = detail['url'], 
-                text = detail['text'][:5000], date = detail['created_at'], 
+                text = detail['text'][:5000], news_theme = detail['news_theme'], date = detail['created_at'], 
                 spider = detail['spider'], news_from = detail['source'])
     return execute_update_sql(sql)
 
@@ -108,28 +108,3 @@ def execute_update_sql(sql):
     finally:
         connection.close()
     return 0
-
-
-if __name__ == '__main__':
-    detail = {}
-    detail['id'] = 'sdjhasdhjsad'
-    detail['title'] = 'sdjhasdhjsad'
-    detail['url'] = 'sdjhasdhjsad'
-    detail['news_type'] = 1
-    detail['detection_type'] = 1
-    detail['result'] = '谣言'
-    detail['date'] = '2021-12-06'
-    detail['spider'] = 'tencentFactSpider'
-    detail['from'] = 'weibo'
-    detail['original_url'] = '/adad'
-    
-    cnt = insert_news_knowledge(detail)
-    print(cnt)
-    result = query_news_knowledge_last_date('tencentFactSpider')
-    print(result)
-    
-    date = '2021-12-07'
-    if result != '' and date > result:
-        print(1)
-    else:
-        print(2)
