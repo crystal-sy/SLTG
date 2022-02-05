@@ -4,13 +4,13 @@ Created on Mon Feb 10 21:10:59 2021
 
 @author: styra
 """
-from tkinter import Tk, Label, Text, Button, END
 import numpy as np
 import jieba
 from keras.models import load_model
 import time
 import re
 from keras.preprocessing import sequence
+import sys
 
 
 voc_dim = 128 # word的向量维度
@@ -30,10 +30,12 @@ class analysis():
             for line in f.readlines():
                 content_text.append(line)
             f.close()
-        with open(comment, 'r', encoding='UTF-8') as f:
-            for line in f.readlines():
-                comment_text.append(line)
-            f.close()
+        
+        if comment != '':
+            with open(comment, 'r', encoding='UTF-8') as f:
+                for line in f.readlines():
+                    comment_text.append(line)
+                f.close()
         return content_text, comment_text
     
     def file_jieba_cut(self, content_text, comment_text):
@@ -125,12 +127,10 @@ class analysis():
         return content_index
     
     def rumor_predict(self, content, comment):
-        content = content.replace("\n", "");
-        comment = comment.replace("\n", "");
+        content = content.replace("\n", "")
+        comment = comment.replace("\n", "")
         if content == '' :
             return "请输入新闻内容的文件路径"
-        elif comment == '' :
-            return "请输入新闻评论的文件路径"
         else :
             version = 'lstm_2'
             # 对数据做预处理，获取内容和评论的词向量
@@ -154,7 +154,9 @@ class analysis():
  
     
 if __name__ == '__main__':
-    test = analysis("", "")
+    contentFile = sys.argv[1]
+    commentFile = sys.argv[2]
+    test = analysis(contentFile, commentFile)
     result = test.main()
     print(result)
         

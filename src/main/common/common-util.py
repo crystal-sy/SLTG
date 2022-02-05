@@ -24,6 +24,4 @@ def jiebaTdidf(file):
  
 if __name__ == '__main__':
     file = sys.argv[1]
-    #file = "E:\\newslist\\TencentFact\\2022-01-14\\dfdcb18184c60cec4d58125922c3de6e.txt"
     print(jiebaTdidf(readFile(file)))
-    
