@@ -380,8 +380,6 @@ class Weibo(object):
                             if created_at < since_date:
                                 self.go_on = False
                                 break
-                            elif created_at > since_date:
-                                continue
                                 
                             if self.is_pinned_weibo(w):
                                 continue
