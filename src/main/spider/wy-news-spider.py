@@ -14,6 +14,8 @@ import sys
 project_path = 'D:\sycode\SLTG\src\main'
 sys.path.append(project_path)
 
+import numpy as np
+from tensorflow.keras.models import load_model
 from config import sltg_config as config
 from spider import newsSpiderDb as db
 from util import common as util
@@ -61,7 +63,7 @@ def save_content(detail):
     fp.close()
     return file
     
-def news_process(wy_news, wy_news_url, wy_newsDate):
+def news_process(wy_news, wy_news_url, wy_newsDate, w2dic, model):
     try:
         wy_content = news_content_process(wy_news, wy_news_url, wy_newsDate)
         #存储模块 保存到txt
@@ -69,7 +71,7 @@ def news_process(wy_news, wy_news_url, wy_newsDate):
         # 新闻关键词
         wy_content['news_theme'] = util.getNewsTheme(filePath)
         # 新闻检测
-        rumor_predict = detection.analysis(filePath, '')
+        rumor_predict = detection.analysis(filePath, '', w2dic, model)
         wy_content['detection_percent'] = rumor_predict.main()
         if len(wy_content['detection_percent']) > 10:
             print(wy_content['detection_percent'])
@@ -95,6 +97,8 @@ def get_date(news_time, key):
 
 def main(sinceDate):
     url_filter_list = []
+    w2dic = np.load(config.w2dic_path, allow_pickle=True).item() 
+    model = load_model(config.lstm_path)
     #以API为index开始获取url列表
     for key in config.wy_url_list.keys():
         page = 1
@@ -122,7 +126,7 @@ def main(sinceDate):
                     wy_news_url = wy_news['docurl'] 
                     if wy_news_url not in url_filter_list:
                         url_filter_list.append(wy_news_url) #将爬取过的URL放入list中
-                        news_process(wy_news, wy_news_url, wy_newsDate)
+                        news_process(wy_news, wy_news_url, wy_newsDate, w2dic, model)
                         
                 logger.info(u'wy_process key: %s, page：%s 页处理完成', key, page)
                 page += 1
@@ -134,5 +138,5 @@ def main(sinceDate):
         
 if __name__ == '__main__':
     #sinceDate = sys.argv[1]
-    sinceDate = '2022-02-06'
+    sinceDate = '2021-01-01'
     main(sinceDate)

@@ -15,6 +15,8 @@ import sys
 project_path = 'D:\sycode\SLTG\src\main'
 sys.path.append(project_path)
 
+import numpy as np
+from tensorflow.keras.models import load_model
 from config import sltg_config as config
 from spider import newsSpiderDb as db
 from util import common as util
@@ -56,7 +58,7 @@ def save_content(detail):
     fp.close()
     return file
     
-def news_process(news, newsDate):
+def news_process(news, newsDate, w2dic, model):
     try:
         piyao_org_content = news_content_process(news, newsDate)
         #存储模块 保存到txt
@@ -64,7 +66,7 @@ def news_process(news, newsDate):
         # 新闻关键词
         piyao_org_content['news_theme'] = util.getNewsTheme(filePath)
         # 新闻检测
-        rumor_predict = detection.analysis(filePath, '')
+        rumor_predict = detection.analysis(filePath, '', w2dic, model)
         piyao_org_content['detection_percent'] = rumor_predict.main()
         if len(piyao_org_content['detection_percent']) > 10:
             print(piyao_org_content['detection_percent'])
@@ -77,6 +79,8 @@ def news_process(news, newsDate):
 
 def main(sinceDate):
     url_filter_list = []
+    w2dic = np.load(config.w2dic_path, allow_pickle=True).item() 
+    model = load_model(config.lstm_path)
     page = 1 #设置爬虫初始爬取的页码
     #使用BeautifulSoup抽取模块和存储模块
     #设置爬取页面的上限，
@@ -104,7 +108,7 @@ def main(sinceDate):
                 news_url = news['LinkUrl']
                 if news_url not in url_filter_list:
                     url_filter_list.append(news_url) #将爬取过的URL放入list中
-                    news_process(news, newsDate)
+                    news_process(news, newsDate, w2dic, model)
                     
             logger.info(u'piyao_process page：%s 页处理完成', page)
             page+=1 #页码自加1

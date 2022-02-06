@@ -20,6 +20,8 @@ from lxml import etree
 project_path = 'D:\sycode\SLTG\src\main'
 sys.path.append(project_path)
 
+import numpy as np
+from tensorflow.keras.models import load_model
 from config import sltg_config as sltg_config
 from spider import newsSpiderDb as db
 from util import common as util
@@ -64,6 +66,8 @@ class Weibo(object):
         self.got_count = 0  # 存储爬取到的微博数
         self.weibo_id_list = []  # 存储爬取到的所有微博id
         self.go_on = True
+        self.w2dic = np.load(sltg_config.w2dic_path, allow_pickle=True).item() 
+        self.model = load_model(sltg_config.lstm_path)
 
     def validate_config(self, config):
         """验证配置是否正确"""
@@ -423,7 +427,7 @@ class Weibo(object):
         # 新闻关键词
         wb['news_theme'] = util.getNewsThemeWithContent(wb['text'])
         # 新闻检测
-        rumor_predict = detection.analysis(wb['text'], '', False)
+        rumor_predict = detection.analysis(wb['text'], '', self.w2dic, self.model, False)
         wb['detection_percent'] = rumor_predict.main()
         if len(wb['detection_percent']) > 10:
             print(wb['detection_percent'])

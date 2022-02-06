@@ -53,3 +53,9 @@ piyao_org_dir = news_dir + 'piyao_org' + os.sep
 piyao_org_url = 'https://dawa.news.cn/nodeart/page?nid=11241459&pgnum={}&cnt=16&attr=&tp=1&orderby=1&callback='
 piyao_org_spider = 'piyaoOrgSpider'
 
+#sltg
+version = 'lstm_2'
+w2dic_path = 'D:\\hscode\\result' + os.sep + version + os.sep + 'w2dic.npy'
+lstm_path = 'D:\\hscode\\result' + os.sep + version + os.sep + 'lstm.h5'
+stop_words_path = 'D:\\hscode\\data\\stop_words.txt'
+
