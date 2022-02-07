@@ -391,9 +391,11 @@ class Weibo(object):
                                 self.got_count += 1
                             else:
                                 logger.info(u'正在过滤转发微博')
-            logger.info(u'{}已获取{}({})的第{}页微博{}'.format(
-                '-' * 30, self.user['screen_name'], self.user['id'], page,
-                '-' * 30))
+                logger.info(u'{}已获取{}({})的第{}页微博{}'.format(
+                    '-' * 30, self.user['screen_name'], self.user['id'], page,
+                    '-' * 30))
+            else:
+                self.go_on = False
         except Exception as e:
             logger.exception(e)
 
