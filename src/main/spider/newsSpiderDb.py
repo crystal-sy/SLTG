@@ -68,13 +68,15 @@ def insert_news_info(detail):
     if result != '' :
         return 0
     
-    sql = """INSERT INTO sys_news (news_id, news_title, news_url, detection_percent,
+    percent = detail['detection_percent']
+    detectionType = getDetectionType(percent)
+    sql = """INSERT INTO sys_news (news_id, news_title, news_url, detection_percent, detection_type,
             news_theme, news_date, news_spider, news_from, create_time) 
-            value ( '{id}', '{title}', '{url}', '{detection_percent}', 
+            value ( '{id}', '{title}', '{url}', '{detection_percent}', '{detection_type}', 
             '{news_theme}', '{date}', '{spider}', '{news_from}', 
             now())""".format(id = detail['id'], 
                 title = detail['title'], url = detail['url'], 
-                detection_percent = detail['detection_percent'], 
+                detection_percent = percent, detection_type = detectionType,
                 news_theme = detail['news_theme'], date = detail['date'], 
                 spider = detail['spider'], news_from = detail['from'])
     return execute_update_sql(sql)
@@ -95,15 +97,34 @@ def insert_news_info_weibo(detail):
         topics = detail['text'][:50] + "..."
         titleFlag = 1
     
+    percent = detail['detection_percent']
+    detectionType = getDetectionType(percent)
     sql = """INSERT INTO sys_news (news_id, news_title, have_title, news_url, news_text,
-            news_theme, detection_percent, news_date, news_spider, news_from, is_file, create_time) 
+            news_theme, detection_percent, detection_type, news_date, news_spider, news_from, is_file, create_time) 
             value ( '{id}', '{title}', '{haveTitle}', '{url}', '{text}', '{news_theme}', '{detection_percent}',
-            '{date}', '{spider}', '{news_from}', '1', now())""".format(id = detail['id'], 
+            '{detection_type}', '{date}', '{spider}', '{news_from}', '1', now())""".format(id = detail['id'], 
                 title = topics, haveTitle = titleFlag, url = detail['url'], 
                 text = detail['text'][:5000], news_theme = detail['news_theme'], 
-                detection_percent = detail['detection_percent'], date = detail['created_at'], 
+                detection_percent = percent, detection_type = detectionType, date = detail['created_at'], 
                 spider = detail['spider'], news_from = detail['source'])
     return execute_update_sql(sql)
+
+def getDetectionType(detectionPercent) :
+    if detectionPercent == '':
+        return "5"
+    
+    percent = float(detectionPercent.replace('%', ''))
+    if (percent > 90) :
+        return "0" # 虚假
+    elif (percent > 70) :
+        return "1" # 疑似诈骗
+    elif (percent > 50) :
+        return "4" # 分情况
+    elif (percent > 30) :
+        return "3" # 待定
+    else :
+        return "2" # 真实
+    
 
 def execute_query_sql(sql):
     connection = pymysql.connect(**mysql_config)
@@ -136,7 +157,7 @@ def query_news_keyword_per_month_real(type_news):
     else:
         symbol = ">"
     sql ="""select news_theme as keywords from sys_news WHERE DATE_SUB(CURDATE(), INTERVAL 30 DAY) <= news_date
-    and detection_percent {symbol} "50%"  """.format(symbol=symbol)
+    and detection_percent {symbol} "90%"  """.format(symbol=symbol)
     try:
         with connection.cursor() as cursor:
             # 执行SQL语句
