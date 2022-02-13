@@ -461,6 +461,7 @@ class Weibo(object):
         self.user_config = user_config
         self.got_count = 0
         self.weibo_id_list = []
+        self.go_on = True
 
     def start(self):
         """运行爬虫"""
@@ -500,6 +501,6 @@ def main(sinceDate):
         logger.exception(e)
 
 if __name__ == '__main__':
-    #sinceDate = sys.argv[1]
-    sinceDate = '2021-10-01'
+    sinceDate = sys.argv[1]
+    # sinceDate = '2022-02-14'
     main(sinceDate)
