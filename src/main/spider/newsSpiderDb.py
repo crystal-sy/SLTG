@@ -6,6 +6,21 @@ Created on Thu Nov 25 22:36:34 2021
 """
 import pymysql
 
+import sys
+# 项目路径,将项目路径保存
+project_path = 'D:\sycode\SLTG\src\main'
+sys.path.append(project_path)
+
+from config import sltg_config as config
+import logging
+import logging.config
+import warnings
+
+warnings.filterwarnings('ignore')
+    
+logging.config.fileConfig(config.logging_path)
+logger = logging.getLogger('spider')
+
 mysql_config = {
     'db': 'sltg-vue',
     'host': 'localhost',
@@ -111,3 +126,26 @@ def execute_update_sql(sql):
     finally:
         connection.close()
     return 0
+
+def query_news_keyword_per_month_real(type_news):
+    symbol = ""
+    resultDict = ''
+    connection = pymysql.connect(**mysql_config)
+    if type_news is True:
+        symbol = "<="
+    else:
+        symbol = ">"
+    sql ="""select news_theme as keywords from sys_news WHERE DATE_SUB(CURDATE(), INTERVAL 30 DAY) <= news_date
+    and detection_percent {symbol} "50%"  """.format(symbol=symbol)
+    try:
+        with connection.cursor() as cursor:
+            # 执行SQL语句
+            cursor.execute(sql)
+            for row in cursor.fetchall() :
+                row = ' '.join(row)
+                resultDict = resultDict + row + ','
+    except:
+        logger.error("Error: unable to fetch data")
+    finally:
+        connection.close() 
+    return resultDict

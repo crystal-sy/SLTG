@@ -50,18 +50,22 @@ def tencent_fact_process(url, news):
 
 def getDetectionType(explain):
     detection_type_list = {
-        '谣言' : 1, # 虚假
-        '疑似诈骗' : 2, # 疑似诈骗
-        '有失实' : 2, # 疑似诈骗
-        '确实如此' : 3, # 真实
-        '确有此事' : 3, # 真实
-        '尚无定论' : 4, # 待定
-        '分情况' : 5, # 分情况
-        '其他' : 6  # 其他
+        '谣言' : 0, # 虚假
+        '假新闻' : 0, # 虚假
+        '伪科学' : 0, # 虚假
+        '伪常识' : 0, # 虚假
+        '疑似诈骗' : 1, # 疑似诈骗
+        '有失实' : 1, # 疑似诈骗
+        '确实如此' : 2, # 真实
+        '确有此事' : 2, # 真实
+        '尚无定论' : 3, # 待定
+        '分情况' : 4, # 分情况
+        '存在争议' : 4, # 分情况
+        '其他' : 5  # 其他
         }
     detection_type = detection_type_list.get(explain)
     if detection_type == None :
-        return 6
+        return 5
     else :
         return detection_type
     
