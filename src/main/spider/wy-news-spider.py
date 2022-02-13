@@ -137,6 +137,6 @@ def main(sinceDate):
                 break
         
 if __name__ == '__main__':
-    #sinceDate = sys.argv[1]
-    sinceDate = '2021-01-01'
+    sinceDate = sys.argv[1]
+    # sinceDate = '2022-02-14'
     main(sinceDate)
