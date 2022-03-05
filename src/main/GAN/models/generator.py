@@ -35,7 +35,7 @@ class Generator(RNN):
         return train_loss
 
     def _create_optimizer(self, *args, **kwargs):
-        return tf.keras.optimizers.Adam(*args, **kwargs)#实现自适应估计的随机梯度下降方法的优化器
+        return tf.keras.optimizers.Adam(*args, **kwargs) #实现自适应估计的随机梯度下降方法的优化器
 
     def save(self, filename):
         self.generator_model.save_weights(filename, save_format="h5")
