@@ -1,0 +1,60 @@
+WQ.shape (None, 256, 128)
+K.permute_dimensions(WK, [0, 2, 1]).shape (None, 128, 256)
+QK.shape (None, 256, 256)
+Train...
+Epoch 1/10
+WARNING:tensorflow:Model was constructed with shape (None, 256) for input KerasTensor(type_spec=TensorSpec(shape=(None, 256), dtype=tf.float32, name='embedding_13_input'), name='embedding_13_input', description="created by layer 'embedding_13_input'"), but it was called on an input with incompatible shape (None, 128).
+W0307 16:44:07.123918 14064 functional.py:636] Model was constructed with shape (None, 256) for input KerasTensor(type_spec=TensorSpec(shape=(None, 256), dtype=tf.float32, name='embedding_13_input'), name='embedding_13_input', description="created by layer 'embedding_13_input'"), but it was called on an input with incompatible shape (None, 128).
+WQ.shape (None, 128, 128)
+K.permute_dimensions(WK, [0, 2, 1]).shape (None, 128, 128)
+QK.shape (None, 128, 128)
+670/670 [==============================] - ETA: 0s - loss: 0.1475 - mse: 0.0385 - acc: 0.9515         WARNING:tensorflow:Model was constructed with shape (None, 256) for input KerasTensor(type_spec=TensorSpec(shape=(None, 256), dtype=tf.float32, name='embedding_13_input'), name='embedding_13_input', description="created by layer 'embedding_13_input'"), but it was called on an input with incompatible shape (None, 128).
+W0307 16:46:35.934715 14064 functional.py:636] Model was constructed with shape (None, 256) for input KerasTensor(type_spec=TensorSpec(shape=(None, 256), dtype=tf.float32, name='embedding_13_input'), name='embedding_13_input', description="created by layer 'embedding_13_input'"), but it was called on an input with incompatible shape (None, 128).
+WQ.shape (None, 128, 128)
+K.permute_dimensions(WK, [0, 2, 1]).shape (None, 128, 128)
+QK.shape (None, 128, 128)
+670/670 [==============================] - 155s 223ms/step - loss: 0.1475 - mse: 0.0385 - acc: 0.9515 - val_loss: 0.1662 - val_mse: 0.0456 - val_acc: 0.9440
+Epoch 2/10
+670/670 [==============================] - 155s 232ms/step - loss: 0.1056 - mse: 0.0277 - acc: 0.9663 - val_loss: 0.1464 - val_mse: 0.0400 - val_acc: 0.9488
+Epoch 3/10
+670/670 [==============================] - 159s 238ms/step - loss: 0.0902 - mse: 0.0242 - acc: 0.9697 - val_loss: 0.1548 - val_mse: 0.0410 - val_acc: 0.9503
+Epoch 4/10
+670/670 [==============================] - 158s 237ms/step - loss: 0.0858 - mse: 0.0230 - acc: 0.9699 - val_loss: 0.1651 - val_mse: 0.0425 - val_acc: 0.9462
+Epoch 5/10
+670/670 [==============================] - 153s 228ms/step - loss: 0.0731 - mse: 0.0196 - acc: 0.9754 - val_loss: 0.1819 - val_mse: 0.0473 - val_acc: 0.9421
+Epoch 6/10
+670/670 [==============================] - 156s 232ms/step - loss: 0.0958 - mse: 0.0258 - acc: 0.9678 - val_loss: 0.1796 - val_mse: 0.0468 - val_acc: 0.9425
+Epoch 7/10
+670/670 [==============================] - 156s 232ms/step - loss: 0.0671 - mse: 0.0177 - acc: 0.9782 - val_loss: 0.1830 - val_mse: 0.0464 - val_acc: 0.9432
+Epoch 8/10
+670/670 [==============================] - 154s 230ms/step - loss: 0.0619 - mse: 0.0162 - acc: 0.9795 - val_loss: 0.2131 - val_mse: 0.0517 - val_acc: 0.9373
+Epoch 9/10
+670/670 [==============================] - 152s 227ms/step - loss: 0.0490 - mse: 0.0124 - acc: 0.9851 - val_loss: 0.2228 - val_mse: 0.0530 - val_acc: 0.9354
+Epoch 10/10
+670/670 [==============================] - 155s 231ms/step - loss: 0.0520 - mse: 0.0137 - acc: 0.9825 - val_loss: 0.2218 - val_mse: 0.0502 - val_acc: 0.9414
+Evaluate...
+210/210 [==============================] - 8s 36ms/step - loss: 0.2290 - mse: 0.0528 - acc: 0.9367
+Test score: [0.2289762794971466, 0.05282977968454361, 0.9366596937179565]
+WQ.shape (None, 256, 128)
+K.permute_dimensions(WK, [0, 2, 1]).shape (None, 128, 256)
+QK.shape (None, 256, 256)
+Model: "sequential_13"
+_________________________________________________________________
+Layer (type)                 Output Shape              Param #   
+=================================================================
+embedding_13 (Embedding)     (None, 256, 128)          5037824   
+_________________________________________________________________
+self__attention_9 (Self_Atte (None, 256, 128)          49152     
+_________________________________________________________________
+lstm_13 (LSTM)               (None, 128)               131584    
+_________________________________________________________________
+dropout_9 (Dropout)          (None, 128)               0         
+_________________________________________________________________
+dense_9 (Dense)              (None, 2)                 258       
+_________________________________________________________________
+activation_9 (Activation)    (None, 2)                 0         
+=================================================================
+Total params: 5,218,818
+Trainable params: 5,218,818
+Non-trainable params: 0
+_________________________________________________________________

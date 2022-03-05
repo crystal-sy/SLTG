@@ -1,0 +1,50 @@
+Compiling the Model...
+Train...
+Epoch 1/10
+WARNING:tensorflow:Model was constructed with shape (None, 256) for input KerasTensor(type_spec=TensorSpec(shape=(None, 256), dtype=tf.float32, name='embedding_1_input'), name='embedding_1_input', description="created by layer 'embedding_1_input'"), but it was called on an input with incompatible shape (None, 128).
+WARNING:tensorflow:Model was constructed with shape (None, 256) for input KerasTensor(type_spec=TensorSpec(shape=(None, 256), dtype=tf.float32, name='embedding_1_input'), name='embedding_1_input', description="created by layer 'embedding_1_input'"), but it was called on an input with incompatible shape (None, 128).
+670/670 [==============================] - ETA: 0s - loss: 0.4729 - mse: 0.1543 - acc: 0.7828     WARNING:tensorflow:Model was constructed with shape (None, 256) for input KerasTensor(type_spec=TensorSpec(shape=(None, 256), dtype=tf.float32, name='embedding_1_input'), name='embedding_1_input', description="created by layer 'embedding_1_input'"), but it was called on an input with incompatible shape (None, 128).
+670/670 [==============================] - 144s 205ms/step - loss: 0.4728 - mse: 0.1543 - acc: 0.7829 - val_loss: 0.3165 - val_mse: 0.0924 - val_acc: 0.8820
+Epoch 2/10
+670/670 [==============================] - 136s 203ms/step - loss: 0.2380 - mse: 0.0667 - acc: 0.9160 - val_loss: 0.2627 - val_mse: 0.0738 - val_acc: 0.9059
+Epoch 3/10
+670/670 [==============================] - 136s 203ms/step - loss: 0.1503 - mse: 0.0411 - acc: 0.9480 - val_loss: 0.2654 - val_mse: 0.0690 - val_acc: 0.9160
+Epoch 4/10
+670/670 [==============================] - 136s 203ms/step - loss: 0.0950 - mse: 0.0243 - acc: 0.9716 - val_loss: 0.3046 - val_mse: 0.0716 - val_acc: 0.9134
+Epoch 5/10
+670/670 [==============================] - 137s 204ms/step - loss: 0.0641 - mse: 0.0165 - acc: 0.9812 - val_loss: 0.3106 - val_mse: 0.0684 - val_acc: 0.9186
+Epoch 6/10
+670/670 [==============================] - 139s 208ms/step - loss: 0.0315 - mse: 0.0078 - acc: 0.9904 - val_loss: 0.3318 - val_mse: 0.0696 - val_acc: 0.9175
+Epoch 7/10
+670/670 [==============================] - 137s 205ms/step - loss: 0.0292 - mse: 0.0068 - acc: 0.9919 - val_loss: 0.3599 - val_mse: 0.0718 - val_acc: 0.9171
+Epoch 8/10
+670/670 [==============================] - 144s 214ms/step - loss: 0.0172 - mse: 0.0043 - acc: 0.9938 - val_loss: 0.4453 - val_mse: 0.0731 - val_acc: 0.9171
+Epoch 9/10
+670/670 [==============================] - 141s 210ms/step - loss: 0.0354 - mse: 0.0080 - acc: 0.9905 - val_loss: 0.3442 - val_mse: 0.0707 - val_acc: 0.9141
+Epoch 10/10
+670/670 [==============================] - 156s 233ms/step - loss: 0.0184 - mse: 0.0047 - acc: 0.9950 - val_loss: 0.3978 - val_mse: 0.0758 - val_acc: 0.9115
+Evaluate...
+210/210 [==============================] - 6s 30ms/step - loss: 0.3582 - mse: 0.0669 - acc: 0.9196
+Test score: [0.35823723673820496, 0.0668935552239418, 0.9196295142173767]
+Model: "sequential_1"
+_________________________________________________________________
+Layer (type)                 Output Shape              Param #   
+=================================================================
+embedding_1 (Embedding)      (None, 256, 128)          5037824   
+_________________________________________________________________
+lstm_1 (LSTM)                (None, 128)               131584    
+_________________________________________________________________
+dropout_1 (Dropout)          (None, 128)               0         
+_________________________________________________________________
+dense_1 (Dense)              (None, 2)                 258       
+_________________________________________________________________
+activation_1 (Activation)    (None, 2)                 0         
+=================================================================
+Total params: 5,169,666
+Trainable params: 5,169,666
+Non-trainable params: 0
+_________________________________________________________________
+
+
+neg:57.90%
+pos:6.75%
