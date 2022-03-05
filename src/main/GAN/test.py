@@ -1,6 +1,6 @@
 import tensorflow as tf
 from models.generator import Generator
-from settings import *
+from gan_config import *
 from preprocessing import load_tokenizer
 
 physical_devices = tf.config.experimental.list_physical_devices("GPU")

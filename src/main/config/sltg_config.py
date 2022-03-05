@@ -8,7 +8,6 @@ import datetime
 import os
 
 
-project_path = 'D:\sycode\SLTG\src\main'
 news_dir = 'E:\\newslist' + os.sep 
 
 now_date = datetime.date.today().strftime('%Y-%m-%d')
@@ -55,7 +54,7 @@ piyao_org_spider = 'piyaoOrgSpider'
 
 #sltg
 version = 'lstm_2'
-w2dic_path = 'D:\\hscode\\result' + os.sep + version + os.sep + 'w2dic.npy'
-lstm_path = 'D:\\hscode\\result' + os.sep + version + os.sep + 'lstm.h5'
-stop_words_path = 'D:\\hscode\\data\\stop_words.txt'
+w2dic_path = '../result' + os.sep + version + os.sep + 'w2dic.npy'
+lstm_path = '../result' + os.sep + version + os.sep + 'lstm.h5'
+stop_words_path = '../data/stop_words.txt'
 

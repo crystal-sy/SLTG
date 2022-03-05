@@ -23,10 +23,11 @@ dis_dropout_keep_prob = 0.75 #判别器神经网络丢弃保留率，用于防�
 #较大的数值会让各个特征对模型的影响力趋于均匀，不会有单个特征把持整个模型的表现。需要调节来控制过拟合
 dis_l2_reg_lambda = 0.2
 
+LSTM_VERSION = 'lstm_2'
 
 # Epoch Number
 PRE_EPOCH_NUM = 120
-EPOCH_NUM = 40
+EPOCH_NUM = 1
 #批量生成文本数据
 generated_num = 10000
 

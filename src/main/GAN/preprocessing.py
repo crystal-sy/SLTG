@@ -7,7 +7,7 @@ import pandas as pd
 import tensorflow as tf
 from nltk.tokenize import word_tokenize, sent_tokenize
 
-from settings import *
+from gan_config import *
 
 #数据清理
 def clean_text(text):
@@ -61,7 +61,7 @@ def tokenize(arr):
     tokenizer.fit_on_texts(arr)
     tensor = tokenizer.texts_to_sequences(arr)
     tensor = tf.keras.preprocessing.sequence.pad_sequences(tensor,
-                                                           padding='post', maxlen=SEQ_LENGTH)#将序列转化为经过填充以后得到的一个长度相同新的序列
+                 padding='post', maxlen=SEQ_LENGTH)#将序列转化为经过填充以后得到的一个长度相同新的序列
     dump_tokenizer(tokenizer)
     return tensor
 
@@ -69,9 +69,9 @@ def tokenize(arr):
 if __name__ == "__main__":
     df = pd.read_csv(dataset_path)
 
-    df = df.review[:generated_num]
+    df = df.review[:generated_num] # 只取一定的数据
     d = split_and_clean(df)
     d = tokenize(d)
 
-    np.savetxt('dataset/positives.txt', d[:generated_num], delimiter=' ', fmt='%i')
-    np.savetxt('dataset/negatives.txt', d[generated_num:(2 * generated_num)], delimiter=' ', fmt='%i')
+    np.savetxt(positive_file, d[:generated_num], fmt='%i')
+    np.savetxt(negative_file, d[generated_num:(2 * generated_num)], fmt='%i')

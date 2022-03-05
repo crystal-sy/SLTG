@@ -1,25 +1,20 @@
-import tensorflow as tf
+# -*- coding: utf-8 -*-
+"""
+Created on Sun Oct 20 18:19:10 2021
+
+@author: styra
+"""
 
 import os
 from utils.dataloader import generator_dataloader, discriminator_dataloader
 from models.generator import Generator
 from models.discriminator import Discriminator
 from models.rollout import ROLLOUT
-from settings import *
+from gan_config import * 
 
 if __name__ == "__main__":
-    #获得当前主机上某种特定运算设备类型（如 GPU 或 CPU ）的列表
-    physical_devices = tf.config.experimental.list_physical_devices("GPU")
-    if len(physical_devices) > 0:
-        for dev in physical_devices:
-            tf.config.experimental.set_memory_growth(dev, True)#获取是否为物理设备启用了内存增长。
-
     generator = Generator(vocab_size, BATCH_SIZE, EMB_DIM, HIDDEN_DIM, SEQ_LENGTH)
-    discriminator = Discriminator(sequence_length=SEQ_LENGTH, num_classes=2, vocab_size=vocab_size,
-                                  embedding_size=dis_embedding_dim,
-                                  filter_sizes=dis_filter_sizes, num_filters=dis_num_filters,
-                                  dropout_keep_prob=dis_dropout_keep_prob,
-                                  l2_reg_lambda=dis_l2_reg_lambda)
+    discriminator = Discriminator(LSTM_VERSION)
 
     gen_dataset = generator_dataloader(positive_file, BATCH_SIZE)
 
@@ -34,21 +29,11 @@ if __name__ == "__main__":
     else:
         generator.load(pretrained_generator_file)
 
-    if not os.path.exists(pretrained_discriminator_file):
-        print('Start pre-training discriminator...')
-        for _ in range(50):
-            print("Dataset", _)
-            generator.generate_samples(generated_num // BATCH_SIZE, negative_file)
-            dis_dataset = discriminator_dataloader(positive_file, negative_file, BATCH_SIZE)
-            discriminator.train(dis_dataset, 3, (generated_num // BATCH_SIZE) * 2)
-        discriminator.save(pretrained_discriminator_file)
-        print('Finished pre-training discriminator...')
-    else:
-        discriminator.load(pretrained_discriminator_file)
+    discriminator.load()
 
     rollout = ROLLOUT(generator, 0.8)
 
-    print('#########################################################################')
+    print('=========================================================================')
     print('Start Adversarial Training...')
     # 那么我们要开始进行训练了。 规则： 训练生成器一次； 训练辨别器五次。
     for epoch in range(EPOCH_NUM):
