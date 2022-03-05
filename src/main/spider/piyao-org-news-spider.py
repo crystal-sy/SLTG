@@ -10,11 +10,6 @@ import json
 import os
 import time
 import sys
-
-# 项目路径,将项目路径保存
-project_path = 'D:\sycode\SLTG\src\main'
-sys.path.append(project_path)
-
 import numpy as np
 from tensorflow.keras.models import load_model
 from config import sltg_config as config
@@ -120,5 +115,5 @@ def main(sinceDate):
         
 if __name__ == '__main__':
     sinceDate = sys.argv[1]
-    # sinceDate = '2022-02-13'
+    # sinceDate = '2022-03-06'
     main(sinceDate)

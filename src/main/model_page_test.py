@@ -7,14 +7,14 @@ Created on Mon Feb 10 21:10:59 2021
 from tkinter import Tk, Label, Text, Button, END
 import numpy as np
 import jieba
-from keras.models import load_model
+from tensorflow.keras.models import load_model
+from tensorflow.keras.preprocessing import sequence
 import time
 import re
-from keras.preprocessing import sequence
 
 voc_dim = 128 # word的向量维度
-data_dir = 'D:\\hscode\\data\\'
-result_dir = 'D:\\hscode\\result\\'
+data_dir = 'data/'
+result_dir = 'result/'
 
 class analysis():
     def __init__(self, content, comment):
@@ -56,7 +56,7 @@ class analysis():
     
     def jiebacut(self, text, nowTime):
         # 将语句分词
-        ret = [];
+        ret = []
         sent_list = jieba.cut(text, cut_all = False) #精确模式
         ret = list(sent_list)
         return ret
@@ -91,9 +91,9 @@ class analysis():
     
     def get_w2dic(self, version):
         if version is None:
-            w2dic = np.load(result_dir + 'w2dic.npy').item()
+            w2dic = np.load(result_dir + 'w2dic.npy', allow_pickle=True).item()
         else :
-            w2dic = np.load(result_dir + version + '\\w2dic.npy').item()
+            w2dic = np.load(result_dir + version + '/w2dic.npy', allow_pickle=True).item()
         return w2dic
     
     def data2index(self, w2indx, text):
@@ -110,7 +110,7 @@ class analysis():
 
     def transfer_word2vec(self, content, comment, version):
         # 1、获取文件数据
-        content_text, comment_text = self.loadfile(content, comment);
+        content_text, comment_text = self.loadfile(content, comment)
         # 2、将文件数据jieba分词
         content_text, comment_text = self.file_jieba_cut(content_text, comment_text)
         # 3、对数据进行预处理，去除停顿词
@@ -124,9 +124,8 @@ class analysis():
         return content_index
     
     def rumor_predict(self, content, comment):
-        return "89.63%"
-        content = content.replace("\n", "");
-        comment = comment.replace("\n", "");
+        content = content.replace("\n", "")
+        comment = comment.replace("\n", "")
         if content == '' :
             return "请输入新闻内容的文件路径"
         elif comment == '' :
@@ -137,9 +136,9 @@ class analysis():
             content_index = self.transfer_word2vec(content, comment, version)
             # 加载算法模型
             if version is None:
-                model = load_model(result_dir + "lstm.h5")
+                model = load_model(result_dir + "discriminator.h5")
             else :
-                model = load_model(result_dir + version + "\\lstm.h5")
+                model = load_model(result_dir + version + "/discriminator.h5")
             # 预测得到结果
             result = model.predict(content_index)
             #输出结果
@@ -153,7 +152,7 @@ class analysis():
             return e
 
 root = Tk()
-root.title("新闻谣言检测")
+root.title("虚假新闻检测")
 sw = root.winfo_screenwidth()
 #得到屏幕宽度
 sh = root.winfo_screenheight()
@@ -191,7 +190,7 @@ def testing():
 
 def submit():
     #鼠标响应
-    subBtn = Button(root, text='谣言检测', font=("" , 12), command = testing)
+    subBtn = Button(root, text='新闻检测', font=("" , 12), command = testing)
     subBtn.place(relx = 0.4, rely = 0.58, relheight = 0.12, relwidth = 0.15)
 
 submit()

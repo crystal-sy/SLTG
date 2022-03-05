@@ -12,14 +12,9 @@ os.environ["CUDA_VISIBLE_DEVICES"]="-1"
 from tensorflow.keras.models import load_model
 import time
 import re 
-from tensorflow.keras.preprocessing import sequence
 import sys
-
-# 项目路径,将项目路径保存
-project_path = 'D:\sycode\SLTG\src\main'
-sys.path.append(project_path)
-
-from config import sltg_config as sltg_config
+from tensorflow.keras.preprocessing import sequence
+from config.sltg_config import stop_words_path, w2dic_path, lstm_path
 
 voc_dim = 256 # word的向量维度
 
@@ -94,7 +89,7 @@ class analysis():
         return content_result, comment_text
     
     # 获取停顿词
-    def stop_words_list(self, filepath = sltg_config.stop_words_path):
+    def stop_words_list(self, filepath = stop_words_path):
         stop_words = {}
         for line in open(filepath, 'r', encoding='utf-8').readlines():
             line = line.strip()
@@ -102,7 +97,7 @@ class analysis():
         return stop_words
     
     def get_w2dic(self):
-        return np.load(sltg_config.w2dic_path, allow_pickle=True).item()
+        return np.load(w2dic_path, allow_pickle=True).item()
     
     def data2index(self, w2indx, text):
         data = []
@@ -147,7 +142,7 @@ class analysis():
             # 加载算法模型
             model = self.model
             if model is None:
-                model = load_model(sltg_config.lstm_path)
+                model = load_model(lstm_path)
             # 预测得到结果
             result = model.predict(content_index)
             #输出结果

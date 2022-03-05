@@ -3,7 +3,7 @@
 Created on Sat Jan 23 22:53:29 2021
 
 @author: ~styra~
-评论算法优化
+新闻文本LSTM+Self_Attention算法
 """
 
 """
@@ -22,13 +22,13 @@ keras开源人工神经网络库，可以作为Tensorflow、Microsoft-CNTK和The
 """
 # Keras Preprocessing是Keras深度学习库的数据预处理和数据增补模块
 # sequence进行数据的序列预处理，如：序列填充
-from keras.preprocessing import sequence
+from tensorflow.keras.preprocessing import sequence
 # keras数据处理工具库
-import keras.utils as kerasUtils
+import tensorflow.keras.utils as kerasUtils
 # 在Keras中有两类主要的模型：Sequential顺序模型和使用函数式API的Model类模型
-from keras.models import Sequential
+from tensorflow.keras.models import Sequential
 # 加载整个模型结构
-from keras.models import load_model
+from tensorflow.keras.models import load_model
 """ 
 keras.layers是keras的核心网络层
 keras的层主要包括：常用层（Core）、卷积层（Convolutional）、池化层（Pooling）、
@@ -39,16 +39,16 @@ keras的层主要包括：常用层（Core）、卷积层（Convolutional）、�
 # mask_zero：布尔值，确定是否将输入中的‘0’看作是应该被忽略的‘填充’（padding）值，
 # 该参数在使用递归层处理变长输入时有用。设置为True的话，模型中后续的层必须都支持
 # masking，否则会抛出异常
-from keras.layers.embeddings import Embedding
+from tensorflow.keras.layers import Embedding
 # 递归层（循环层）包含三种模型：LSTM、GRU和SimpleRNN
-from keras.layers.recurrent import LSTM
+from tensorflow.keras.layers import LSTM
 # Dense层(全连接层）
 # 为输入数据施加Dropout。Dropout将在训练过程中每次更新参数时按一定概率（rate）
 # 随机断开输入神经元，Dropout层用于防止过拟合。
 # Activation层（激活层对一个层的输出施加激活函数） 
-from keras.layers.core import Dense, Dropout, Activation
-from keras import backend
-from keras.engine.topology import Layer
+from tensorflow.keras.layers import Dense, Dropout, Activation
+from tensorflow.keras import backend
+from tensorflow.keras.layers import Layer
 """
 scikit-learn 是基于 Python 语言的机器学习工具
 简单高效的数据挖掘和数据分析工具
@@ -84,9 +84,9 @@ batch_size = 16 # batch 32
 now = int(time.time())
 timeArray = time.localtime(now)
 nowTime = time.strftime("%Y%m%d%H%M%S", timeArray)
-data_dir = 'D:\\hscode\\data\\'
-result_dir = 'D:\\hscode\\result\\' + nowTime + '\\'
-model_dir = 'D:\\hscode\\result\\'
+data_dir = 'data/'
+result_dir = 'result/' + nowTime + '/'
+model_dir = 'result/'
 
 class Self_Attention(Layer):
     def __init__(self, output_dim, **kwargs):
@@ -132,11 +132,11 @@ def loadfile():
     #文件输入
     neg = []
     pos = []
-    with open(data_dir + 'pos_test_1.txt', 'r', encoding='UTF-8') as f:
+    with open(data_dir + 'pos_test.txt', 'r', encoding='UTF-8') as f:
         for line in f.readlines():
             pos.append(line)
         f.close()
-    with open(data_dir + 'neg_test_1.txt', 'r', encoding='UTF-8') as f:
+    with open(data_dir + 'neg_test.txt', 'r', encoding='UTF-8') as f:
         for line in f.readlines():
             neg.append(line)
         f.close()
@@ -158,7 +158,7 @@ def clean_str_sst(string):
 
 def jiebacut(text):
     # 将语句分词
-    ret = [];
+    ret = []
     sent_list = jieba.cut(text, cut_all = False) #精确模式
     ret = list(sent_list)
     
@@ -201,7 +201,7 @@ def stop_words_list(filepath = data_dir + 'stop_words.txt'):
 
 def data2index(X_Vec):
     data = []
-    w2indx = np.load(data_dir + 'word2vec\\128\\w2dic_test.npy').item()
+    w2indx = np.load(data_dir + 'word2vec/128/w2dic_test.npy', allow_pickle=True).item()
     for sentence in X_Vec:
         new_txt = []
         for word in sentence:
@@ -282,6 +282,7 @@ def train_lstm(embedding_weights, x_train, y_train, x_test, y_test, version):
     plt.plot(h.history["acc"],label="train_acc")
     plt.plot(h.history["val_acc"],label="val_acc")
     plt.legend()
+    plt.savefig(result_dir + 'result.png') # show之前保存图片，之后保存图片为空白
     plt.show()
 
     print ("Evaluate...")
@@ -293,6 +294,8 @@ def train_lstm(embedding_weights, x_train, y_train, x_test, y_test, version):
     print ('Test score:', score)
     
     # 保存结果
+    if not os.path.exists(result_dir):
+        os.mkdir(result_dir)
     yaml_string = model.to_yaml()
     with open(result_dir + 'lstm.yml', 'w') as outfile:
         outfile.write(yaml.dump(yaml_string, default_flow_style=True))
@@ -302,7 +305,9 @@ def train_lstm(embedding_weights, x_train, y_train, x_test, y_test, version):
     # 展开模型参数
     loadModel = load_model(result_dir + 'lstm.h5', custom_objects = {
         'Self_Attention': Self_Attention})
-    loadModel.summary()
+    with open(result_dir + 'modelsummary.txt', 'w') as f:
+        loadModel.summary(print_fn=lambda x: f.write(x + '\n'))
+   
 
 
 # 1、获取文件数据
@@ -324,9 +329,9 @@ y_test = kerasUtils.to_categorical(y_test, num_classes=2)
 version = None
 if version is None:
     # 8、获取权重
-    embedding_weights = np.load(data_dir + 'word2vec\\128\\embedding_weights_test.npy')
+    embedding_weights = np.load(data_dir + 'word2vec/128/embedding_weights_test.npy', allow_pickle=True)
 else :
     embedding_weights = []
     
-# 9、lstm情感训练
+# 9、lstm+Self_Attention情感训练
 train_lstm(embedding_weights, x_train, y_train, x_test, y_test, version)

@@ -38,8 +38,8 @@ cpu_count = multiprocessing.cpu_count() - 4  # 4CPU数量
 voc_dim = 128 # word的向量维度
 min_out = 3 # 单词出现次数
 window_size = 5 # WordVec中的滑动窗口大小
-data_dir = 'D:\\hscode\\data\\'
-result_dir = 'D:\\hscode\\result\\'
+data_dir = "..\main\data" + os.sep
+result_dir = "..\main\result" + os.sep
 
 def loadfile():
     #文件输入
@@ -68,7 +68,7 @@ def file_jieba_cut(text):
 
 def jiebacut(text, nowTime):
     # 将语句分词
-    ret = [];
+    ret = []
     sent_list = jieba.cut(text, cut_all = False) # 精确模式
     ret = list(sent_list)
     
@@ -166,6 +166,5 @@ X_Vec = loadfile()
 X_Vec = file_jieba_cut(X_Vec)
 # 3、词向量训练，构造词向量字典
 word2vec_train(X_Vec)
-"""
+# 4、词向量保存
 save_word2vec()
-"""

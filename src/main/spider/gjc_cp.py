@@ -7,16 +7,11 @@ from wordcloud import WordCloud
 import imageio
 import matplotlib.pyplot as plt 
 import os
-import sys
-# 项目路径,将项目路径保存
-project_path = 'D:\sycode\SLTG\src\main'
-stopword_path = 'D:\hscode\data\stop_words.txt' 
 
-img_path = r'D:\sycode\SLTG-VUE\sltg-ui\src\assets\images'
+stopword_path = '..\data\stop_words.txt' 
+img_path = r'..\..\..\..\SLTG-VUE\sltg-ui\src\assets\images'
 
-sys.path.append(project_path)
-
-from spider import newsSpiderDb as db
+import newsSpiderDb as db
 
 # 
 def tf_idf_news():

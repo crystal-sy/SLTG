@@ -6,11 +6,6 @@ Created on Thu Nov 25 22:36:34 2021
 """
 import pymysql
 
-import sys
-# 项目路径,将项目路径保存
-project_path = 'D:\sycode\SLTG\src\main'
-sys.path.append(project_path)
-
 from config import sltg_config as config
 import logging
 import logging.config
