@@ -1,8 +1,7 @@
 from tensorflow import keras
 
-
 def TextCNN(vocab_size, feature_size, embed_size, num_classes, num_filters,
-            filter_sizes, regularizers_lambda, dropout_rate):
+            filter_sizes, regularizes_lambda, dropout_rate):
     inputs = keras.Input(shape=(feature_size,), name='input_data')
     embed_initer = keras.initializers.RandomUniform(minval=-1, maxval=1)
     embed = keras.layers.Embedding(vocab_size, embed_size,
@@ -34,8 +33,8 @@ def TextCNN(vocab_size, feature_size, embed_size, num_classes, num_filters,
     outputs = keras.layers.Dense(num_classes, activation='softmax',
                                  kernel_initializer='glorot_normal',
                                  bias_initializer=keras.initializers.constant(0.1),
-                                 kernel_regularizer=keras.regularizers.l2(regularizers_lambda),
-                                 bias_regularizer=keras.regularizers.l2(regularizers_lambda),
+                                 kernel_regularizer=keras.regularizers.l2(regularizes_lambda),
+                                 bias_regularizer=keras.regularizers.l2(regularizes_lambda),
                                  name='dense')(pool_outputs)
     model = keras.Model(inputs=inputs, outputs=outputs)
     return model

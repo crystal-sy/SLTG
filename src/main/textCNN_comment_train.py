@@ -7,11 +7,10 @@ import tensorflow as tf
 from pprint import pprint
 import time
 
-
 def train(x_train, y_train, vocab_size, feature_size, save_path):
     print("\nTrain...")
     model = TextCNN(vocab_size, feature_size, args.embed_size, args.num_classes,
-                    args.num_filters, args.filter_sizes, args.regularizers_lambda, args.dropout_rate)
+                    args.num_filters, args.filter_sizes, args.regularizes_lambda, args.dropout_rate)
     model.summary()
     parallel_model = keras.utils.multi_gpu_model(model, gpus=2)
     parallel_model.compile(tf.optimizers.Adam(), loss='categorical_crossentropy',
@@ -28,7 +27,6 @@ def train(x_train, y_train, vocab_size, feature_size, save_path):
     keras.models.save_model(model, save_path)
     pprint(history.history)
 
-
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='This is the TextCNN train project.')
     parser.add_argument('-t', '--test_sample_percentage', default=0.1, type=float, help='The fraction of test data.(default=0.1)')
@@ -38,25 +36,23 @@ if __name__ == '__main__':
     parser.add_argument('-n', '--num_filters', default=128, type=int, help='Number of each convolution kernel.(default=128)')
     parser.add_argument('-d', '--dropout_rate', default=0.5, type=float, help='Dropout rate in softmax layer.(default=0.5)')
     parser.add_argument('-c', '--num_classes', default=18, type=int, help='Number of target classes.(default=18)')
-    parser.add_argument('-l', '--regularizers_lambda', default=0.01, type=float, help='L2 regulation parameter.(default=0.01)')
+    parser.add_argument('-l', '--regularizes_lambda', default=0.01, type=float, help='L2 regulation parameter.(default=0.01)')
     parser.add_argument('-b', '--batch_size', default=64, type=int, help='Mini-Batch size.(default=64)')
     parser.add_argument('--epochs', default=10, type=int, help='Number of epochs.(default=10)')
     parser.add_argument('--fraction_validation', default=0.05, type=float, help='The fraction of validation.(default=0.05)')
-    parser.add_argument('--results_dir', default='./results/', type=str, help='The results dir including log, model, vocabulary and some images.(default=./results/)')
+    parser.add_argument('--results_dir', default='result/', type=str, help='The results dir including log, model, vocabulary and some images.(default=result/)')
     args = parser.parse_args()
     print('Parameters:', args, '\n')
 
-    if not os.path.exists(args.results_dir):
-        os.mkdir(args.results_dir)
     timestamp = time.strftime("%Y-%m-%d-%H-%M", time.localtime(time.time()))
     os.mkdir(os.path.join(args.results_dir, timestamp))
     os.mkdir(os.path.join(args.results_dir, timestamp, 'log/'))
 
-    if not os.path.exists("./data/train_data.csv") or not os.path.exists("./data/test_data.csv"):
-        data_helper.load_data_and_write_to_file("./data/fenduan_clean.xlsx", "./data/train_data.csv",
-                                                "./data/test_data.csv", args.test_sample_percentage)
+    if not os.path.exists("data/train_data.csv") or not os.path.exists("data/test_data.csv"):
+        data_helper.load_data_and_write_to_file("data/clean_data.xlsx", "data/train_data.csv",
+                                                "data/test_data.csv", args.test_sample_percentage)
 
-    x_train, y_train, vocab_size = data_helper.preprocess("./data/train_data.csv",
+    x_train, y_train, vocab_size = data_helper.preprocess("data/train_data.csv",
                                                           os.path.join(args.results_dir, timestamp, "vocab.json"),
                                                           args.padding_size)
     train(x_train, y_train, vocab_size, args.padding_size, os.path.join(args.results_dir, timestamp, 'TextCNN.h5'))

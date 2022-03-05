@@ -8,7 +8,6 @@ from sklearn.utils.multiclass import unique_labels
 import matplotlib.pyplot as plt
 import os
 
-
 def plot_confusion_matrix(y_true, y_pred, classes,
                           normalize=False,
                           title=None,
@@ -62,7 +61,6 @@ def plot_confusion_matrix(y_true, y_pred, classes,
     fig.tight_layout()
     return ax
 
-
 def test(model, x_test, y_test):
     print("Test...")
     y_pred_one_hot = model.predict(x=x_test, batch_size=1, verbose=1)
@@ -76,7 +74,6 @@ def test(model, x_test, y_test):
     target_names = ['class {:d}'.format(i) for i in np.arange(args.num_classes)]
     print(classification_report(y_test, y_pred, target_names=target_names, digits=4))
 
-
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='This is the TextCNN test project.')
     parser.add_argument('results_dir', type=str, help='The results dir including log, model, vocabulary and some images.')
@@ -85,7 +82,7 @@ if __name__ == '__main__':
     args = parser.parse_args()
     print('Parameters:', args)
 
-    x_test, y_test = preprocess("./data/test_data.csv", os.path.join(args.results_dir, "vocab.json"),
+    x_test, y_test = preprocess("data/test_data.csv", os.path.join(args.results_dir, "vocab.json"),
                                 args.padding_size, test=True)
     print("Loading model...")
     model = load_model(os.path.join(args.results_dir, 'TextCNN.h5'))

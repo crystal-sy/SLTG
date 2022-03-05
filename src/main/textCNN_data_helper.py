@@ -5,7 +5,6 @@ from tensorflow.keras import preprocessing
 import numpy as np
 import json
 
-
 def text_preprocess(text):
     """
     Clean and segment the text.
@@ -19,7 +18,6 @@ def text_preprocess(text):
     if not text:
         return ''
     return ' '.join(string for string in text)
-
 
 def load_data_and_write_to_file(data_file, train_data_file, test_data_file, test_sample_percentage):
     """
@@ -71,7 +69,6 @@ def load_data_and_write_to_file(data_file, train_data_file, test_data_file, test
         writer = csv.writer(f)
         writer.writerows(zip(x_test, y_test))
 
-
 def preprocess(data_file, vocab_file, padding_size, test=False):
     """
     Text to sequence, compute vocabulary size, padding sequence.
@@ -83,10 +80,10 @@ def preprocess(data_file, vocab_file, padding_size, test=False):
 
     if not test:
         # Texts to sequences
-        text_preprocesser = preprocessing.text.Tokenizer(oov_token="<UNK>")
-        text_preprocesser.fit_on_texts(x_text)
-        x = text_preprocesser.texts_to_sequences(x_text)
-        word_dict = text_preprocesser.word_index
+        text_preprocessor = preprocessing.text.Tokenizer(oov_token="<UNK>")
+        text_preprocessor.fit_on_texts(x_text)
+        x = text_preprocessor.texts_to_sequences(x_text)
+        word_dict = text_preprocessor.word_index
         json.dump(word_dict, open(vocab_file, 'w'), ensure_ascii=False)
         vocab_size = len(word_dict)
         # max_doc_length = max([len(each_text) for each_text in x])
