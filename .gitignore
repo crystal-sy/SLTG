@@ -6,3 +6,6 @@
 /.idea/misc.xml
 /.idea/.gitignore
 
+/src/main/data/word2vec/
+/src/main/data/rumdetect2017.zip
+/src/main/result/textCNN/
