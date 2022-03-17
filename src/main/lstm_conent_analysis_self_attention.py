@@ -67,7 +67,7 @@ import os
 import re
 
 # CPU运行
-os.environ["CUDA_VISIBLE_DEVICES"]="-1"
+# os.environ["CUDA_VISIBLE_DEVICES"]="-1"
 
 # 设置递归深度
 sys.setrecursionlimit(1000000)
@@ -78,15 +78,15 @@ np.random.seed()
 # 参数配置
 cpu_count = multiprocessing.cpu_count() - 4  # 4CPU数量
 voc_dim = 128 # word的向量维度
-lstm_input = 256 # lstm输入维度
+lstm_input = 128 # lstm输入维度
 epoch_time = 10 # epoch 100
 batch_size = 16 # batch 32
 now = int(time.time())
 timeArray = time.localtime(now)
 nowTime = time.strftime("%Y%m%d%H%M%S", timeArray)
 data_dir = 'data/'
-result_dir = 'result/' + nowTime + '/'
-model_dir = 'result/'
+result_dir = 'result/lstm_attention/' + nowTime + '/'
+model_dir = 'result/lstm_attention/'
 
 class Self_Attention(Layer):
     def __init__(self, output_dim, **kwargs):
@@ -132,11 +132,11 @@ def loadfile():
     #文件输入
     neg = []
     pos = []
-    with open(data_dir + 'pos_test.txt', 'r', encoding='UTF-8') as f:
+    with open(data_dir + 'dataset/twitter_real.txt', 'r', encoding='UTF-8') as f:
         for line in f.readlines():
             pos.append(line)
         f.close()
-    with open(data_dir + 'neg_test.txt', 'r', encoding='UTF-8') as f:
+    with open(data_dir + 'dataset/twitter_fake.txt', 'r', encoding='UTF-8') as f:
         for line in f.readlines():
             neg.append(line)
         f.close()
@@ -201,7 +201,7 @@ def stop_words_list(filepath = data_dir + 'stop_words.txt'):
 
 def data2index(X_Vec):
     data = []
-    w2indx = np.load(data_dir + 'word2vec/128/w2dic_test.npy', allow_pickle=True).item()
+    w2indx = np.load(data_dir + 'word2vec/128/w2dic.npy', allow_pickle=True).item()
     for sentence in X_Vec:
         new_txt = []
         for word in sentence:
@@ -329,7 +329,7 @@ y_test = kerasUtils.to_categorical(y_test, num_classes=2)
 version = None
 if version is None:
     # 8、获取权重
-    embedding_weights = np.load(data_dir + 'word2vec/128/embedding_weights_test.npy', allow_pickle=True)
+    embedding_weights = np.load(data_dir + 'word2vec/128/embedding_weights.npy', allow_pickle=True)
 else :
     embedding_weights = []
     

@@ -54,7 +54,7 @@ piyao_org_spider = 'piyaoOrgSpider'
 
 #sltg
 version = 'lstm_2'
-w2dic_path = '../result' + os.sep + version + os.sep + 'w2dic.npy'
-lstm_path = '../result' + os.sep + version + os.sep + 'lstm.h5'
-stop_words_path = '../data/stop_words.txt'
+w2dic_path = 'result' + os.sep + version + os.sep + 'w2dic.npy'
+lstm_path = 'result' + os.sep + version + os.sep + 'lstm.h5'
+stop_words_path = 'data/stop_words.txt'
 
