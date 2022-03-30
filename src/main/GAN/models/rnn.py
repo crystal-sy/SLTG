@@ -20,7 +20,7 @@ class RNN(object):
                  recurrent_initializer=tf.random_normal_initializer(stddev=0.1), return_sequences=True),
             Dense(self.num_emb, kernel_initializer=tf.random_normal_initializer(stddev=0.1), activation="softmax")
         ])
-        self.g_optimizer = self._create_optimizer(learning_rate, clipnorm=self.grad_clip)
+        self.g_optimizer = self.create_optimizer(learning_rate, clipnorm=self.grad_clip)
         if self.g_optimizer is not None:
             self.generator_model.compile(
                 optimizer=self.g_optimizer,
@@ -67,5 +67,5 @@ class RNN(object):
                 for poem in generated_samples:
                     print(' '.join([str(x) for x in poem]), file=fout)
 
-    def _create_optimizer(self, *args, **kwargs):
+    def create_optimizer(self, *args, **kwargs):
         return None

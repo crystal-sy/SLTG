@@ -10,12 +10,17 @@ import json
 import os
 import time
 import sys
+# 项目路径,将项目路径保存
+project_path = os.path.abspath(os.path.join(os.getcwd(), ".."))
+sys.path.append(project_path)
+
 import numpy as np
 from tensorflow.keras.models import load_model
 from config import sltg_config as config
 from spider import newsSpiderDb as db
 from util import common as util
 import news_detection as detection
+from self_attention import Self_Attention
 
 import logging
 import logging.config
@@ -94,7 +99,8 @@ def get_date(news_time, key):
 def main(sinceDate):
     url_filter_list = []
     w2dic = np.load(config.w2dic_path, allow_pickle=True).item() 
-    model = load_model(config.lstm_path)
+    model = load_model(config.lstm_path, custom_objects = {
+        'Self_Attention': Self_Attention})
     #以API为index开始获取url列表
     for key in config.wy_url_list.keys():
         page = 1
@@ -134,5 +140,5 @@ def main(sinceDate):
         
 if __name__ == '__main__':
     sinceDate = sys.argv[1]
-    # sinceDate = '2022-03-06'
+    # sinceDate = '2022-03-30'
     main(sinceDate)

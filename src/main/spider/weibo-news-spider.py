@@ -9,6 +9,10 @@ import json
 import os
 import random
 import sys
+# 项目路径,将项目路径保存
+project_path = os.path.abspath(os.path.join(os.getcwd(), ".."))
+sys.path.append(project_path)
+
 from collections import OrderedDict
 from datetime import date, datetime, timedelta
 from time import sleep
@@ -21,6 +25,7 @@ from config import sltg_config as sltg_config
 from spider import newsSpiderDb as db
 from util import common as util
 import news_detection as detection
+from self_attention import Self_Attention
 
 import logging
 import logging.config
@@ -62,7 +67,8 @@ class Weibo(object):
         self.weibo_id_list = []  # 存储爬取到的所有微博id
         self.go_on = True
         self.w2dic = np.load(sltg_config.w2dic_path, allow_pickle=True).item() 
-        self.model = load_model(sltg_config.lstm_path)
+        self.model = load_model(sltg_config.lstm_path, custom_objects = {
+            'Self_Attention': Self_Attention})
 
     def validate_config(self, config):
         """验证配置是否正确"""
@@ -496,6 +502,6 @@ def main(sinceDate):
         logger.exception(e)
 
 if __name__ == '__main__':
-    sinceDate = sys.argv[1]
-    # sinceDate = '2022-03-06'
+    # sinceDate = sys.argv[1]
+    sinceDate = '2022-03-06'
     main(sinceDate)

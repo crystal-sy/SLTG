@@ -13,8 +13,6 @@ numpy是python扩展程序库，支持大量的维度数组与矩阵运算，
 import numpy as np 
 # jieba分词
 import jieba
-# 自然语言处理NLP神器--gensim，词向量Word2Vec
-from matplotlib import pyplot as plt
 
 """
 keras开源人工神经网络库，可以作为Tensorflow、Microsoft-CNTK和Theano的
@@ -25,8 +23,6 @@ keras开源人工神经网络库，可以作为Tensorflow、Microsoft-CNTK和The
 from tensorflow.keras.preprocessing import sequence
 # keras数据处理工具库
 import tensorflow.keras.utils as kerasUtils
-# 在Keras中有两类主要的模型：Sequential顺序模型和使用函数式API的Model类模型
-from tensorflow.keras.models import Sequential
 # 加载整个模型结构
 from tensorflow.keras.models import load_model
 """ 
@@ -35,29 +31,9 @@ keras的层主要包括：常用层（Core）、卷积层（Convolutional）、�
 局部连接层、递归层（Recurrent）、嵌入层（ Embedding）、高级激活层、规范层、
 噪声层、包装层，当然也可以编写自己的层。
 """
-# 嵌入层只能作为模型第一层
-# mask_zero：布尔值，确定是否将输入中的‘0’看作是应该被忽略的‘填充’（padding）值，
-# 该参数在使用递归层处理变长输入时有用。设置为True的话，模型中后续的层必须都支持
-# masking，否则会抛出异常
-from tensorflow.keras.layers import Embedding
-# 递归层（循环层）包含三种模型：LSTM、GRU和SimpleRNN
-from tensorflow.keras.layers import LSTM
-# Dense层(全连接层）
-# 为输入数据施加Dropout。Dropout将在训练过程中每次更新参数时按一定概率（rate）
-# 随机断开输入神经元，Dropout层用于防止过拟合。
-# Activation层（激活层对一个层的输出施加激活函数） 
-from tensorflow.keras.layers import Dense, Dropout, Activation
 from tensorflow.keras import backend
 from tensorflow.keras.layers import Layer
-"""
-scikit-learn 是基于 Python 语言的机器学习工具
-简单高效的数据挖掘和数据分析工具
-可供大家在各种环境中重复使用
-"""
-# model_selection这个模块主要是对数据的分割，以及与数据划分相关的功能
-from sklearn.model_selection import train_test_split
-
-import yaml
+import tensorflow as tf
 import sys
 # multiprocessing包是Python中的多进程管理包。 与threading.Thread类似,
 # 它可以利用multiprocessing.Process对象来创建一个进程。
@@ -65,6 +41,7 @@ import multiprocessing
 import time
 import os
 import re
+from sklearn.metrics import accuracy_score, classification_report
 
 # CPU运行
 # os.environ["CUDA_VISIBLE_DEVICES"]="-1"
@@ -220,95 +197,19 @@ def data2index(X_Vec):
     w2indx = []
     return data 
 
-def train_lstm(embedding_weights, x_train, y_train, x_test, y_test, version):
-    if version is None :
-        #Keras有两种不同的构建模型-顺序模型
-        model = Sequential()
-        # 嵌入层
-        model.add(Embedding(input_dim=len(embedding_weights),
-                            output_dim=voc_dim,
-                            mask_zero=True,
-                            weights=[embedding_weights],
-                            input_length=lstm_input)) 
-        model.add(Self_Attention(128))
-        model.add(LSTM(128, activation='softsign')) # 激活函数softsign
-        model.add(Dropout(0.5)) # 防止过拟合
-        model.add(Dense(2)) # 全连接层
-        model.add(Activation('sigmoid'))
-        
-        embedding_weights = []
-        print ('Compiling the Model...')
-        # 均方误差mean_squared_error/mse
-        # 平均绝对误差mean_absolute_error/mae
-        # 平均绝对百分比误差mean_absolute_percentage_error/mape
-        # 均方对数误差mean_squared_logarithmic_error/msle
-        model.compile(loss='binary_crossentropy',#hinge  # 损失函数，对数损失
-                      optimizer='adam', metrics=['mse', 'acc'])
-        #model.compile(loss='binary_crossentropy',#hinge  # 损失函数
-                   #   optimizer='adam', metrics=['mae', 'acc'])
-    else :
-        # 基于之前生成的模型继续训练
-        model = load_model(model_dir + version + '\\lstm.h5', custom_objects = {
-            'Self_Attention': Self_Attention})
-
-    """
-    在 fit 和 evaluate 中 都有 verbose 这个参数
-    fit 中的 verbose
-    verbose：该参数的值控制日志显示的方式
-    verbose = 0    不在标准输出流输出日志信息
-    verbose = 1    输出进度条记录
-    verbose = 2    每个epoch输出一行记录
-    注意： 默认为 1
-    
-    evaluate 中的 verbose
-    verbose：控制日志显示的方式
-    verbose = 0  不在标准输出流输出日志信息
-    verbose = 1  输出进度条记录
-    注意： 只能取 0 和 1；默认为 1
-    """
-    print ("Train...")  # batch_size=32
-    #数据太集中，打乱顺序
-    np.random.seed(200)
-    np.random.shuffle(x_train) 
-    np.random.seed(200)
-    np.random.shuffle(y_train)
- 
-    h = model.fit(x_train, y_train, batch_size=batch_size, epochs=epoch_time, 
-              verbose=1,
-              validation_split = 0.2)
-    
-    plt.plot(h.history["loss"],label="train_loss")
-    plt.plot(h.history["val_loss"],label="val_loss")
-    plt.plot(h.history["acc"],label="train_acc")
-    plt.plot(h.history["val_acc"],label="val_acc")
-    plt.legend()
-    plt.savefig(result_dir + 'result.png') # show之前保存图片，之后保存图片为空白
-    plt.show()
-
-    print ("Evaluate...")
+def test_lstm(x_test, y_test, model):
+    print("Evaluate...")
     np.random.seed(200)
     np.random.shuffle(x_test) 
     np.random.seed(200)
     np.random.shuffle(y_test)
-    score = model.evaluate(x_test, y_test, batch_size=batch_size)
-    print ('Test score:', score)
-    
-    # 保存结果
-    if not os.path.exists(result_dir):
-        os.mkdir(result_dir)
-    yaml_string = model.to_yaml()
-    with open(result_dir + 'lstm.yml', 'w') as outfile:
-        outfile.write(yaml.dump(yaml_string, default_flow_style=True))
-    model.save(result_dir + 'lstm.h5')
-    # kerasUtils.plot_model(model, to_file = result_dir + 'model.png')
-    
-    # 展开模型参数
-    loadModel = load_model(result_dir + 'lstm.h5', custom_objects = {
-        'Self_Attention': Self_Attention})
-    with open(result_dir + 'modelsummary.txt', 'w') as f:
-        loadModel.summary(print_fn=lambda x: f.write(x + '\n'))
-   
+    y_pred_one_hot = model.predict(x=x_test, batch_size=batch_size)
+    y_pred = tf.math.argmax(y_pred_one_hot, axis=1)
 
+    print('\nTest accuracy: {}\n'.format(accuracy_score(y_test, y_pred)))
+    print('Classification report:')
+    target_names = ['class {:d}'.format(i) for i in np.arange(2)]
+    print(classification_report(y_test, y_pred, target_names=target_names, digits=2))    
 
 # 1、获取文件数据
 X_Vec, y = loadfile()
@@ -319,19 +220,11 @@ X_Vec = data_prepare(X_Vec)
 # 4、文本转关键词序列号数组
 index = data2index(X_Vec)
 # 5、 序列预处理pad_sequences()序列填充,前面添0到voc_dim长度
-index2 = sequence.pad_sequences(index, maxlen=lstm_input)
-# 6、函数划分训练、测试数据
-x_train, x_test, y_train, y_test = train_test_split(index2, y, test_size=0.2)
-# 7、将原向量变为one-hot编码，数据转为num_classes数组
-y_train = kerasUtils.to_categorical(y_train, num_classes=2)
-y_test = kerasUtils.to_categorical(y_test, num_classes=2)
+index2 = sequence.pad_sequences(index)
 
-version = '20220319001007'
-if version is None:
-    # 8、获取权重
-    embedding_weights = np.load(data_dir + 'word2vec/128/embedding_weights.npy', allow_pickle=True)
-else :
-    embedding_weights = []
+version = '20220321005053'
+model = load_model(model_dir + version + '\\lstm.h5', custom_objects = {
+    'Self_Attention': Self_Attention})
     
-# 9、lstm+Self_Attention情感训练
-train_lstm(embedding_weights, x_train, y_train, x_test, y_test, version)
+# 7、情感模型测试
+test_lstm(index2, y, model)

@@ -13,6 +13,7 @@ news_dir = 'E:\\newslist' + os.sep
 now_date = datetime.date.today().strftime('%Y-%m-%d')
 
 logging_path = os.path.split(os.path.realpath(__file__))[0] + os.sep + 'logging.conf'
+project_path = os.path.abspath(os.path.join(os.path.split(os.path.realpath(__file__))[0], "..")) + os.sep
 
 
 # tencentfact
@@ -53,8 +54,8 @@ piyao_org_url = 'https://dawa.news.cn/nodeart/page?nid=11241459&pgnum={}&cnt=16&
 piyao_org_spider = 'piyaoOrgSpider'
 
 #sltg
-version = 'lstm_2'
-w2dic_path = 'result' + os.sep + version + os.sep + 'w2dic.npy'
-lstm_path = 'result' + os.sep + version + os.sep + 'lstm.h5'
-stop_words_path = 'data/stop_words.txt'
+version = '20220319001007'
+w2dic_path = project_path + 'data' + os.sep + 'word2vec'+ os.sep + '128' + os.sep + 'w2dic.npy'
+lstm_path = project_path + 'result' + os.sep + 'lstm_attention' + os.sep + version + os.sep + 'lstm.h5'
+stop_words_path = project_path + 'data' + os.sep + 'stop_words.txt'
 

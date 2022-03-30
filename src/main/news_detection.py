@@ -13,8 +13,8 @@ from tensorflow.keras.models import load_model
 import time
 import re 
 import sys
-from tensorflow.keras.preprocessing import sequence
 from config.sltg_config import stop_words_path, w2dic_path, lstm_path
+from self_attention import Self_Attention
 
 voc_dim = 256 # word的向量维度
 
@@ -102,13 +102,11 @@ class analysis():
     def data2index(self, w2indx, text):
         data = []
         for sentence in text:
-            new_txt = []
             for word in sentence:
                 try:
-                    new_txt.append(w2indx[word])
+                    data.append(w2indx[word])
                 except:
-                    new_txt.append(0)
-            data.append(new_txt)
+                    data.append(0)
         return data 
 
     def transfer_word2vec(self, content, comment):
@@ -126,9 +124,7 @@ class analysis():
         if w2dic is None :
             w2dic = self.get_w2dic()
         # 5、文本转关键词序列号数组
-        index = self.data2index(w2dic, content_text)
-        # 6、 序列预处理pad_sequences()序列填充,前面添0到voc_dim长度
-        content_index = sequence.pad_sequences(index, maxlen = voc_dim)
+        content_index = self.data2index(w2dic, content_text)
         return content_index
     
     def rumor_predict(self, content, comment):
@@ -142,7 +138,8 @@ class analysis():
             # 加载算法模型
             model = self.model
             if model is None:
-                model = load_model(lstm_path)
+                model = load_model(lstm_path, custom_objects = {
+                    'Self_Attention': Self_Attention})
             # 预测得到结果
             result = model.predict(content_index)
             #输出结果

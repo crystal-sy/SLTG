@@ -1,5 +1,5 @@
 import argparse
-from data_helper import preprocess
+from textCNN_data_helper import preprocess
 from tensorflow.keras.models import load_model
 import tensorflow as tf
 import numpy as np
@@ -76,14 +76,16 @@ def test(model, x_test, y_test):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='This is the TextCNN test project.')
-    parser.add_argument('results_dir', type=str, help='The results dir including log, model, vocabulary and some images.')
+    parser.add_argument('--results_dir', default='result/textCNN/', type=str, help='The results dir including log, model, vocabulary and some images.(default=result/textCNN/)')
     parser.add_argument('-p', '--padding_size', default=128, type=int, help='Padding size of sentences.(default=128)')
-    parser.add_argument('-c', '--num_classes', default=18, type=int, help='Number of target classes.(default=18)')
+    parser.add_argument('-c', '--num_classes', default=2, type=int, help='Number of target classes.(default=2)')
     args = parser.parse_args()
     print('Parameters:', args)
-
-    x_test, y_test = preprocess("data/test_data.csv", os.path.join(args.results_dir, "vocab.json"),
+    
+    version = '2022-03-18-01-16'
+    x_test, y_test = preprocess("data/sentiment_test.csv",
+                                os.path.join(args.results_dir, version, "vocab.json"),
                                 args.padding_size, test=True)
     print("Loading model...")
-    model = load_model(os.path.join(args.results_dir, 'TextCNN.h5'))
+    model = load_model(os.path.join(args.results_dir, version, 'TextCNN.h5'))
     test(model, x_test, y_test)

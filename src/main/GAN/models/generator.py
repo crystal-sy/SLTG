@@ -2,14 +2,16 @@ from models.rnn import RNN
 
 import numpy as np
 import tensorflow as tf
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.optimizers import Adam
 
 
 class Generator(RNN):
     def __init__(self, num_emb, batch_size, emb_dim, hidden_dim, sequence_length, learning_rate=0.01):
         super(Generator, self).__init__(num_emb, batch_size, emb_dim, hidden_dim, sequence_length, learning_rate)
-
-        self.generator_model = tf.keras.models.Sequential(self.generator_model.layers)#容器构建神经网络，依据层名或下标获得层对象
-        self.generator_optimizer = self._create_optimizer(
+        #容器构建神经网络，依据层名或下标获得层对象
+        self.generator_model = Sequential(self.generator_model.layers)
+        self.generator_optimizer = self.create_optimizer(
             learning_rate,
             clipnorm=self.grad_clip
         )
@@ -34,8 +36,9 @@ class Generator(RNN):
         print("Generator Loss: ", train_loss)
         return train_loss
 
-    def _create_optimizer(self, *args, **kwargs):
-        return tf.keras.optimizers.Adam(*args, **kwargs) #实现自适应估计的随机梯度下降方法的优化器
+    def create_optimizer(self, *args, **kwargs):
+        #实现自适应估计的随机梯度下降方法的优化器
+        return Adam(*args, **kwargs)
 
     def save(self, filename):
         self.generator_model.save_weights(filename, save_format="h5")

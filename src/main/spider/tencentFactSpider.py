@@ -8,6 +8,11 @@ from bs4 import BeautifulSoup as bs #用于数据抽取
 import requests
 import json
 import os
+import sys
+# 项目路径,将项目路径保存
+project_path = os.path.abspath(os.path.join(os.getcwd(), ".."))
+sys.path.append(project_path)
+
 from config import sltg_config as config
 from spider import newsSpiderDb as db
 from util import common as util

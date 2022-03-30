@@ -1,8 +1,8 @@
 import argparse
 import os
-import textCNN_data_helper as data_helper
 from textCNN import TextCNN
 from tensorflow import keras
+from textCNN_data_helper import preprocess
 import tensorflow as tf
 from pprint import pprint
 import time
@@ -70,7 +70,8 @@ if __name__ == '__main__':
     os.mkdir(os.path.join(args.results_dir, timestamp))
     os.mkdir(os.path.join(args.results_dir, timestamp, 'log/'))
 
-    x_train, y_train, vocab_size = data_helper.preprocess("data/sentiment_train.csv",
-                                                          os.path.join(args.results_dir, timestamp, "vocab.json"),
-                                                          args.padding_size)
+    x_train, y_train, vocab_size = preprocess("data/sentiment_train.csv",
+                                              os.path.join(args.results_dir, timestamp, "vocab.json"),
+                                              args.padding_size)
+                                
     train(x_train, y_train, vocab_size, args.padding_size, os.path.join(args.results_dir, timestamp))

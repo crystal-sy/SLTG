@@ -10,12 +10,17 @@ import json
 import os
 import time
 import sys
+# 项目路径,将项目路径保存
+project_path = os.path.abspath(os.path.join(os.getcwd(), ".."))
+sys.path.append(project_path)
+
 import numpy as np
 from tensorflow.keras.models import load_model
 from config import sltg_config as config
 from spider import newsSpiderDb as db
 from util import common as util
 import news_detection as detection
+from self_attention import Self_Attention
 
 import logging
 import logging.config
@@ -74,8 +79,9 @@ def news_process(news, newsDate, w2dic, model):
 
 def main(sinceDate):
     url_filter_list = []
-    w2dic = np.load(config.w2dic_path, allow_pickle=True).item() 
-    model = load_model(config.lstm_path)
+    w2dic = np.load(config.w2dic_path, allow_pickle=True).item()
+    model = load_model(config.lstm_path, custom_objects = {
+        'Self_Attention': Self_Attention})
     page = 1 #设置爬虫初始爬取的页码
     #使用BeautifulSoup抽取模块和存储模块
     #设置爬取页面的上限，
@@ -115,5 +121,5 @@ def main(sinceDate):
         
 if __name__ == '__main__':
     sinceDate = sys.argv[1]
-    # sinceDate = '2022-03-06'
+    # sinceDate = '2022-03-30'
     main(sinceDate)

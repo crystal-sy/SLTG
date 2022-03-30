@@ -39,8 +39,9 @@ else:
     #min_samples_split：在树的节点分裂前所需的最少观察数。
     #min_samples_leaf：每棵树末端的叶节点所需的最少观察数。
     #bootstrap：是否使用 bootstrapping 来为随机林中的每棵树提供数据。（bootstrapping 是从数据集中进行替换的随机抽样。）
-    model = RandomForestClassifier(n_estimators=1000,  max_features='sqrt', max_depth=None, 
-                               min_samples_split=2, bootstrap=True, n_jobs=1, random_state=1)
+    model = RandomForestClassifier(n_estimators=200,  max_features='sqrt', 
+                                   min_samples_leaf=50, min_samples_split=2, 
+                                   bootstrap=True, n_jobs=1, random_state=1)
     
 # 度量随机森林的准确性
 model = model.fit(X_train, y_train)
