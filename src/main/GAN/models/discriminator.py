@@ -17,13 +17,13 @@ class Self_Attention(Layer):
         return config
 
     def build(self, input_shape):
-        # Îª¸Ã²ã´´½¨Ò»¸ö¿ÉÑµÁ·µÄÈ¨ÖØ
+        # ä¸ºè¯¥å±‚åˆ›å»ºä¸€ä¸ªå¯è®­ç»ƒçš„æƒé‡
         #inputs.shape = (batch_size, time_steps, seq_len)
         self.kernel = self.add_weight(name='kernel',
                                       shape=(3,input_shape[2], self.output_dim),
                                       initializer='uniform',
                                       trainable=True)
-        super(Self_Attention, self).build(input_shape)  # Ò»¶¨ÒªÔÚ×îºóµ÷ÓÃËü
+        super(Self_Attention, self).build(input_shape)  # ä¸€å®šè¦åœ¨æœ€åè°ƒç”¨å®ƒ
 
     def call(self, x):
         WQ = backend.dot(x, self.kernel[0])
@@ -34,7 +34,7 @@ class Self_Attention(Layer):
         print("K.permute_dimensions(WK, [0, 2, 1]).shape",backend.permute_dimensions(WK, [0, 2, 1]).shape)
 
         QK = backend.batch_dot(WQ, backend.permute_dimensions(WK, [0, 2, 1]))
-        QK = QK / (64**0.5) #¿ª¸ùºÅ£¬¹éÒ»»¯ÏµÊı
+        QK = QK / (64**0.5) #å¼€æ ¹å·ï¼Œå½’ä¸€åŒ–ç³»æ•°
         QK = backend.softmax(QK)
         print("QK.shape", QK.shape)
 

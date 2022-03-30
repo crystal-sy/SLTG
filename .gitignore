@@ -10,3 +10,4 @@
 /src/main/data/rumdetect2017.zip
 /src/main/result/textCNN/
 /.idea/libraries/rumdetect2017.xml
+/src/main/result/lstm_attention/

@@ -6,35 +6,35 @@ from tensorflow.keras.initializers import RandomUniform, constant
 def TextCNN(vocab_size, feature_size, embed_size, num_classes, num_filters,
             filter_sizes, regularizes_lambda, dropout_rate):
     inputs = Input(shape=(feature_size,))
-    # Ç¶Èë²ã
+    # åµŒå…¥å±‚
     model = Embedding(input_dim=vocab_size, output_dim=embed_size,
                       embeddings_initializer=RandomUniform(minval=-1, maxval=1),
                       input_length=feature_size)(inputs)
-    # Ôö¼ÓÍ¨µÀ
+    # å¢åŠ é€šé“
     model = Reshape((feature_size, embed_size, 1))(model)
 
     pool_outputs = []
     for filter_size in list(map(int, filter_sizes.split(','))):
-        # ¹¹ÔìÇøÓò´óĞ¡Îª3£¬4£¬5£¬Ã¿¸öÇøÓò2¸ö¹ıÂËµÄ6²ã¾í»ı²ã
+        # æ„é€ åŒºåŸŸå¤§å°ä¸º3ï¼Œ4ï¼Œ5ï¼Œæ¯ä¸ªåŒºåŸŸ2ä¸ªè¿‡æ»¤çš„6å±‚å·ç§¯å±‚
         conv = Conv2D(num_filters, (filter_size, embed_size), strides=(1, 1),
                       padding='valid', data_format='channels_last', 
                       activation='relu', kernel_initializer='glorot_normal',
                       bias_initializer=constant(0.1),
                       name='Conv2D_{:d}'.format(filter_size))(model) 
-        # ¹¹ÔìÃ¿¸öÇøÓò2¸öÌØÕ÷mapµÄ³Ø»¯²ã
+        # æ„é€ æ¯ä¸ªåŒºåŸŸ2ä¸ªç‰¹å¾mapçš„æ± åŒ–å±‚
         pool = MaxPool2D(pool_size=(feature_size - filter_size + 1, 1),
                          strides=(1, 1), padding='valid',
                          data_format='channels_last',
                          name='MaxPool2D_{:d}'.format(filter_size))(conv)
         pool_outputs.append(pool)
 
-    # Æ½»¬²ã
+    # å¹³æ»‘å±‚
     pool_outputs = Flatten(data_format='channels_last')(
         concatenate(pool_outputs, axis=-1))
-    # Ìİ¶ÈÏÂ½µ²ã
+    # æ¢¯åº¦ä¸‹é™å±‚
     pool_outputs = Dropout(dropout_rate)(pool_outputs)
 
-    # È«Á¬½Ó²ã£¬×îºóÊä³ö2Î¬µÄ½á¹û¼¯
+    # å…¨è¿æ¥å±‚ï¼Œæœ€åè¾“å‡º2ç»´çš„ç»“æœé›†
     outputs = Dense(num_classes, activation='softmax',
                     kernel_initializer='glorot_normal',
                     bias_initializer=constant(0.1),

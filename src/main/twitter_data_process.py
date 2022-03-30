@@ -57,7 +57,7 @@ plt.plot(val_loss,label="val_loss")
 plt.plot(acc,label="train_acc")
 plt.plot(val_acc,label="val_acc")
 plt.legend()
-#plt.savefig('result.png') # show之前保存图片，之后保存图片为空白
+#plt.savefig('result.png') # show涔嬪墠淇濆瓨鍥剧墖锛屼箣鍚庝繚瀛樺浘鐗囦负绌虹櫧
 my_x_ticks = np.arange(0, 0.9, 1)
 plt.yticks(my_x_ticks)
 plt.show()
