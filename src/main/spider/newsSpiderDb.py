@@ -104,6 +104,26 @@ def insert_news_info_weibo(detail):
                 spider = detail['spider'], news_from = detail['source'])
     return execute_update_sql(sql)
 
+def insert_news_comment(detail):
+    if detail == {}:
+        return 0
+    
+    sql = """select comment_id from sys_news_comment 
+            where comment_id = '{id}'""".format(id = detail['id'])
+    result = execute_query_sql(sql)
+    if result != '' :
+        return 0
+    
+    sql = """INSERT INTO sys_news_comment (comment_id, news_id, user_id, user_name,
+            comment_text, root_id, comment_time, like_count, create_time) 
+            value ( '{id}', '{news_id}', '{user_id}', '{user_name}', 
+                   '{text}', '{root_id}', '{comtent_time}', '{count}',
+            now())""".format(id = detail['id'], news_id = detail['news_id'], 
+                user_id = detail['user_id'], user_name = detail['user_name'], 
+                text = detail['text'][:5000], root_id = detail['root_id'], 
+                comtent_time = detail['comment_time'], count = detail['like_count'])
+    return execute_update_sql(sql)
+
 def getDetectionType(detectionPercent) :
     if detectionPercent == '':
         return "5"

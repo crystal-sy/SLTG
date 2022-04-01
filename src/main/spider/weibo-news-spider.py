@@ -53,6 +53,8 @@ class Weibo(object):
         cookie = config.get('cookie')  # 微博cookie，可填可不填
         user_agent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/86.0.4240.111 Safari/537.36'
         self.headers = {'User_Agent': user_agent, 'Cookie': cookie}
+        self.comment_max_download_count = config['comment_max_download_count']  #如果设置了下评论，每条微博评论数会限制在这个值内
+        self.download_comment = (config['download_comment'] and  self.comment_max_download_count > 0)
         
         user_id_list = config['user_id_list']
         user_config_list = [{
@@ -73,7 +75,7 @@ class Weibo(object):
     def validate_config(self, config):
         """验证配置是否正确"""
         # 验证filter
-        argument_list = ['filter']
+        argument_list = ['filter', 'download_comment']
         for argument in argument_list:
             if config[argument] != 0 and config[argument] != 1:
                 logger.warning(u'%s值应为0或1,请重新输入', config[argument])
@@ -101,6 +103,14 @@ class Weibo(object):
             if not os.path.isfile(user_id_list):
                 logger.warning(u'不存在%s文件', user_id_list)
                 sys.exit()
+        
+        comment_max_count = config['comment_max_download_count']
+        if (not isinstance(comment_max_count, int)):
+            logger.warning(u'最大下载评论数应为整数类型')
+            sys.exit()
+        elif (comment_max_count < 0):
+            logger.warning(u'最大下载数应该为正整数')
+            sys.exit()
 
     def is_date(self, since_date):
         """判断日期格式是否正确"""
@@ -307,11 +317,142 @@ class Weibo(object):
         weibo['source'] = weibo_info['source']
         weibo['attitudes_count'] = self.string_to_int(
             weibo_info.get('attitudes_count', 0))
+        weibo['comments_count'] = self.string_to_int(
+            weibo_info.get('comments_count', 0))
         weibo['reposts_count'] = self.string_to_int(
             weibo_info.get('reposts_count', 0))
         weibo['topics'] = self.get_topics(selector)
         weibo['at_users'] = self.get_at_users(selector)
+        
+        comment_list = []
+        if (self.download_comment) and (weibo['comments_count'] > 0):
+            logger.info(u'正在下载评论 微博id:{id}正文:{text}'.format(id=weibo['id'],
+                                                            text=weibo['text']))
+            self._get_weibo_comments_cookie(weibo, 0, 
+                                            self.comment_max_download_count, 
+                                            None, comment_list)
+        weibo['comments'] = comment_list
         return self.standardize_info(weibo)
+    
+    def _get_weibo_comments_cookie(self, weibo, cur_count, max_count, max_id,
+                                   comment_list):
+        """
+        :weibo standardlized weibo
+        :cur_count  已经下载的评论数
+        :max_count 最大允许下载数
+        :max_id 微博返回的max_id参数
+        :on_downloaded 下载完成时的实例方法回调
+        """
+        if cur_count >= max_count:
+            return
+
+        id = weibo["id"]
+        params = {"mid": id}
+        if max_id:
+            params["max_id"] = max_id
+
+        url = "https://m.weibo.cn/comments/hotflow?max_id_type=0"
+        req = requests.get(
+            url,
+            params=params,
+            headers=self.headers,
+        )
+        json = None
+        error = False
+        try:
+            json = req.json()
+        except Exception as e:
+            print(e)
+            #没有cookie会抓取失败
+            #微博日期小于某个日期的用这个url会被403 需要用老办法尝试一下
+            error = True
+
+        if error:
+            #最大好像只能有50条 TODO: improvement
+            self._get_weibo_comments_nocookie(weibo, 0, max_count, 0,
+                                              comment_list)
+            return
+
+        data = json.get('data')
+        if not data:
+            #新接口没有抓取到的老接口也试一下
+            self._get_weibo_comments_nocookie(weibo, 0, max_count, 0,
+                                              comment_list)
+            return
+
+        comments = data.get('data')
+        count = len(comments)
+        if count == 0:
+            #没有了可以直接跳出递归
+            return
+
+        comment_list.append(comments)
+
+        #随机睡眠一下
+        if max_count % 40 == 0:
+            sleep(random.randint(1, 5))
+
+        cur_count += count
+        max_id = data.get('max_id')
+
+        if max_id == 0:
+            return
+
+        self._get_weibo_comments_cookie(weibo, cur_count, max_count, max_id,
+                                        comment_list)
+        
+    def _get_weibo_comments_nocookie(self, weibo, cur_count, max_count, page,
+                                     comment_list):
+        """
+        :weibo standardlized weibo
+        :cur_count  已经下载的评论数
+        :max_count 最大允许下载数
+        :max_id 微博返回的max_id参数
+        """
+        if cur_count >= max_count:
+            return
+        id = weibo['id']
+        url = "https://m.weibo.cn/api/comments/show?id={id}&page={page}".format(
+            id=id, page=page)
+        req = requests.get(url)
+        json = None
+        try:
+            json = req.json()
+        except Exception as e:
+            print(e)
+            #没有cookie会抓取失败
+            logger.info(u'未能抓取评论 微博id:{id} 内容{text}'.format(
+                id=id, text=weibo['text']))
+            return
+
+        data = json.get('data')
+        if not data:
+            return
+        comments = data.get('data')
+        count = len(comments)
+        if count == 0:
+            #没有了可以直接跳出递归
+            return
+
+        comment_list.append(comments)
+
+        cur_count += count
+        page += 1
+
+        #随机睡眠一下
+        if page % 2 == 0:
+            sleep(random.randint(1, 5))
+
+        req_page = data.get('max')
+
+        if req_page == 0:
+            return
+
+        if page >= req_page:
+            return
+        self._get_weibo_comments_nocookie(weibo, cur_count, max_count, page,
+                                          comment_list)
+
 
     def get_one_weibo(self, info):
         """获取一条微博的全部信息"""
@@ -434,7 +575,38 @@ class Weibo(object):
             print(wb['detection_percent'])
             wb['detection_percent'] = ''
             
-        db.insert_news_info_weibo(wb)
+        # db.insert_news_info_weibo(wb)
+        comments_list = wb['comments']
+        if not comments_list or len(comments_list) == 0:
+            return
+        
+        weibo_id = wb['id']
+        for comments in comments_list:
+            for comment in comments:
+                data = self.parse_sqlite_comment(comment, weibo_id)
+                db.insert_news_comment(data)
+    
+    def parse_sqlite_comment(self, comment, weibo_id):
+        if not comment:
+            return
+        
+        sqlite_comment = OrderedDict()
+        sqlite_comment["id"] = comment['id']
+        sqlite_comment["news_id"] = weibo_id
+        sqlite_comment["user_id"] = comment['user']['id']
+        sqlite_comment["user_name"] = comment['user']['screen_name']
+        sqlite_comment["text"] = comment['text']
+
+        self._try_get_value('root_id', 'rootid', sqlite_comment, comment)
+        self._try_get_value('created_at', 'created_at', sqlite_comment,
+                            comment)
+        self._try_get_value('like_count', 'like_count', sqlite_comment,
+                            comment)
+        
+        created_at = sqlite_comment["created_at"].replace('+0800 ', '')
+        temp = datetime.strptime(created_at, '%c')
+        sqlite_comment["created_at"] = datetime.strftime(temp, '%Y-%m-%d %H:%M:%S')
+        return sqlite_comment
 
     def get_pages(self):
         """获取全部微博"""
@@ -503,5 +675,5 @@ def main(sinceDate):
 
 if __name__ == '__main__':
     # sinceDate = sys.argv[1]
-    sinceDate = '2022-03-06'
+    sinceDate = '2022-03-30'
     main(sinceDate)
