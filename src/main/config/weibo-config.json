@@ -2,12 +2,14 @@
     "user_id_list": ["1618051664","5044281310","2318910945","1642512402"],
     "filter": 1,
     "remove_html_tag": 1,
-    "since_date": "2021-12-12",
+    "since_date": "2022-03-29",
     "start_page": 1,
     "original_pic_download": 1,
     "retweet_pic_download": 0,
     "original_video_download": 1,
     "retweet_video_download": 0,
     "result_dir_name": 0,
+    "download_comment":1,
+    "comment_max_download_count":500,
     "cookie": "your cookie"
 }

@@ -68,7 +68,7 @@ class Weibo(object):
         self.got_count = 0  # 存储爬取到的微博数
         self.weibo_id_list = []  # 存储爬取到的所有微博id
         self.go_on = True
-        self.w2dic = np.load(sltg_config.w2dic_path, allow_pickle=True).item() 
+        self.w2dic = np.load(sltg_config.w2dic_path, allow_pickle=True).item()
         self.model = load_model(sltg_config.lstm_path, custom_objects = {
             'Self_Attention': Self_Attention})
 
@@ -574,8 +574,8 @@ class Weibo(object):
         if len(wb['detection_percent']) > 10:
             print(wb['detection_percent'])
             wb['detection_percent'] = ''
-            
-        # db.insert_news_info_weibo(wb)
+
+        db.insert_news_info_weibo(wb)
         comments_list = wb['comments']
         if not comments_list or len(comments_list) == 0:
             return
@@ -584,7 +584,8 @@ class Weibo(object):
         for comments in comments_list:
             for comment in comments:
                 data = self.parse_sqlite_comment(comment, weibo_id)
-                db.insert_news_comment(data)
+                if data != '':
+                    db.insert_news_comment(data)
     
     def parse_sqlite_comment(self, comment, weibo_id):
         if not comment:
@@ -595,18 +596,47 @@ class Weibo(object):
         sqlite_comment["news_id"] = weibo_id
         sqlite_comment["user_id"] = comment['user']['id']
         sqlite_comment["user_name"] = comment['user']['screen_name']
-        sqlite_comment["text"] = comment['text']
+        sqlite_comment["text"] = self._try_get_text(comment['text'])
+        if sqlite_comment["text"] == '':
+            return ''
+        
+        sqlite_comment["like_count"] = comment['like_count']
 
         self._try_get_value('root_id', 'rootid', sqlite_comment, comment)
         self._try_get_value('created_at', 'created_at', sqlite_comment,
                             comment)
-        self._try_get_value('like_count', 'like_count', sqlite_comment,
-                            comment)
-        
         created_at = sqlite_comment["created_at"].replace('+0800 ', '')
         temp = datetime.strptime(created_at, '%c')
         sqlite_comment["created_at"] = datetime.strftime(temp, '%Y-%m-%d %H:%M:%S')
         return sqlite_comment
+    
+    def _try_get_text(self, text):
+        if text == '':
+            return ''
+        
+        result = text.replace('/n', '')
+        try:
+            while result.index('<span') > -1:
+                start = result.index('<span')
+                end = result.index('</span>') + 7
+                result = result.replace(result[start:end], '')
+        except Exception :
+            logger.info(u'表情处理完成:%s', result)
+            
+        try:
+            while result.index('<a ') > -1:
+                start = result.index('<a ')
+                end = result.index('>') + 1
+                result = result.replace(result[start:end], '').replace('</a>', '')
+        except Exception :
+            logger.info(u'@某人处理完成:%s', result)
+        return result
+            
+    def _try_get_value(self, source_name, target_name, dict, json):
+        dict[source_name] = ''
+        value = json.get(target_name)
+        if value:
+            dict[source_name] = value
 
     def get_pages(self):
         """获取全部微博"""

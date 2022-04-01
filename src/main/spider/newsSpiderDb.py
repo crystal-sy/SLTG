@@ -121,7 +121,7 @@ def insert_news_comment(detail):
             now())""".format(id = detail['id'], news_id = detail['news_id'], 
                 user_id = detail['user_id'], user_name = detail['user_name'], 
                 text = detail['text'][:5000], root_id = detail['root_id'], 
-                comtent_time = detail['comment_time'], count = detail['like_count'])
+                comtent_time = detail['created_at'], count = detail['like_count'])
     return execute_update_sql(sql)
 
 def getDetectionType(detectionPercent) :
