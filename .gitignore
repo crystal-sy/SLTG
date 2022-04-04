@@ -1,5 +1,7 @@
 /src/main/spider/all.log
 /src/main/spider/error.log
+/src/main/util/all.log
+/src/main/util/error.log
 /.idea/vcs.xml
 /.idea/SLTG.iml
 /.idea/modules.xml

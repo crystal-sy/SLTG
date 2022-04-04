@@ -582,10 +582,11 @@ class Weibo(object):
         for comments in comments_list:
             for comment in comments:
                 self.insert_comment(comment, weibo_id)
-                childs = comment['comments'] 
-                if childs is not None and childs != False:
-                    for child in childs :
-                        self.insert_comment(child, weibo_id)
+                if comment.get('comments') is not None:
+                    childs = comment['comments'] 
+                    if childs is not None and childs != False:
+                        for child in childs :
+                            self.insert_comment(child, weibo_id)
     
     def insert_comment(self, comment, weibo_id):
         data = self.parse_sqlite_comment(comment, weibo_id)
@@ -724,6 +725,6 @@ def main(sinceDate):
         logger.exception(e)
 
 if __name__ == '__main__':
-    # sinceDate = sys.argv[1]
-    sinceDate = '2022-03-30'
+    sinceDate = sys.argv[1]
+    # sinceDate = '2022-03-30'
     main(sinceDate)
