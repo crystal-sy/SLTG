@@ -51,7 +51,7 @@ class Weibo(object):
         self.start_page = config.get('start_page', 1)  # 开始爬的页，如果中途被限制而结束可以用此定义开始页码
         self.result_dir_name = config.get('result_dir_name', 0)  # 结果目录名，取值为0或1，决定结果文件存储在用户昵称文件夹里还是用户id文件夹里
         cookie = config.get('cookie')  # 微博cookie，可填可不填
-        user_agent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/86.0.4240.111 Safari/537.36'
+        user_agent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/100.0.4896.60 Safari/537.36 Edg/100.0.1185.29'
         self.headers = {'User_Agent': user_agent, 'Cookie': cookie}
         self.comment_max_download_count = config['comment_max_download_count']  #如果设置了下评论，每条微博评论数会限制在这个值内
         self.download_comment = (config['download_comment'] and  self.comment_max_download_count > 0)
@@ -264,25 +264,25 @@ class Weibo(object):
             string = float(string[:-1]) * 100000000
         return int(string)
 
-    def standardize_date(self, created_at):
+    def standardize_date(self, created_at, fromat = '%Y-%m-%d'):
         """标准化微博发布时间"""
         if u'刚刚' in created_at:
-            created_at = datetime.now().strftime('%Y-%m-%d')
+            created_at = datetime.now().strftime(fromat)
         elif u'分钟' in created_at:
             minute = created_at[:created_at.find(u'分钟')]
             minute = timedelta(minutes=int(minute))
-            created_at = (datetime.now() - minute).strftime('%Y-%m-%d')
+            created_at = (datetime.now() - minute).strftime(fromat)
         elif u'小时' in created_at:
             hour = created_at[:created_at.find(u'小时')]
             hour = timedelta(hours=int(hour))
-            created_at = (datetime.now() - hour).strftime('%Y-%m-%d')
+            created_at = (datetime.now() - hour).strftime(fromat)
         elif u'昨天' in created_at:
             day = timedelta(days=1)
-            created_at = (datetime.now() - day).strftime('%Y-%m-%d')
+            created_at = (datetime.now() - day).strftime(fromat)
         else:
             created_at = created_at.replace('+0800 ', '')
             temp = datetime.strptime(created_at, '%c')
-            created_at = datetime.strftime(temp, '%Y-%m-%d')
+            created_at = datetime.strftime(temp, fromat)
         return created_at
 
     def standardize_info(self, weibo):
@@ -347,22 +347,21 @@ class Weibo(object):
             return
 
         id = weibo["id"]
-        params = {"mid": id}
+        url = "https://m.weibo.cn/comments/hotflow?id={}&mid={}&max_id_type=0".format(id, id)
         if max_id:
-            params["max_id"] = max_id
-
-        url = "https://m.weibo.cn/comments/hotflow?max_id_type=0"
+            url = "https://m.weibo.cn/comments/hotflow?id={}&mid={}&max_id={}&max_id_type=0".format(id, id, max_id)
+            
         req = requests.get(
             url,
-            params=params,
             headers=self.headers,
         )
         json = None
         error = False
         try:
             json = req.json()
-        except Exception as e:
-            print(e)
+        except Exception :
+            logger.info(u'cookie未能抓取评论 微博id:{id} 内容{text}'.format(
+                id=id, text=weibo['text']))
             #没有cookie会抓取失败
             #微博日期小于某个日期的用这个url会被403 需要用老办法尝试一下
             error = True
@@ -418,10 +417,9 @@ class Weibo(object):
         json = None
         try:
             json = req.json()
-        except Exception as e:
-            print(e)
+        except Exception :
             #没有cookie会抓取失败
-            logger.info(u'未能抓取评论 微博id:{id} 内容{text}'.format(
+            logger.info(u'nocookie未能抓取评论 微博id:{id} 内容{text}'.format(
                 id=id, text=weibo['text']))
             return
 
@@ -583,9 +581,19 @@ class Weibo(object):
         weibo_id = wb['id']
         for comments in comments_list:
             for comment in comments:
-                data = self.parse_sqlite_comment(comment, weibo_id)
-                if data != '':
-                    db.insert_news_comment(data)
+                self.insert_comment(comment, weibo_id)
+                childs = comment['comments'] 
+                if childs is not None and childs != False:
+                    for child in childs :
+                        self.insert_comment(child, weibo_id)
+    
+    def insert_comment(self, comment, weibo_id):
+        data = self.parse_sqlite_comment(comment, weibo_id)
+        if data != '':
+            try:
+                db.insert_news_comment(data)
+            except Exception :
+                logger.error(u'评论插入异常:%s', data['text'])    
     
     def parse_sqlite_comment(self, comment, weibo_id):
         if not comment:
@@ -600,14 +608,16 @@ class Weibo(object):
         if sqlite_comment["text"] == '':
             return ''
         
-        sqlite_comment["like_count"] = comment['like_count']
-
         self._try_get_value('root_id', 'rootid', sqlite_comment, comment)
         self._try_get_value('created_at', 'created_at', sqlite_comment,
                             comment)
-        created_at = sqlite_comment["created_at"].replace('+0800 ', '')
-        temp = datetime.strptime(created_at, '%c')
-        sqlite_comment["created_at"] = datetime.strftime(temp, '%Y-%m-%d %H:%M:%S')
+        sqlite_comment["created_at"] = self.standardize_date(
+            sqlite_comment["created_at"], '%Y-%m-%d %H:%M:%S')
+        
+        if sqlite_comment['id'] == sqlite_comment['root_id']:
+            sqlite_comment["like_count"] = self._try_get_like_count(comment)
+        else:
+            sqlite_comment["like_count"] = 0
         return sqlite_comment
     
     def _try_get_text(self, text):
@@ -632,6 +642,16 @@ class Weibo(object):
             logger.info(u'@某人处理完成:%s', result)
         return result
             
+    def _try_get_like_count(self, json):
+        count = 0
+        value1 = json.get('like_count')
+        value2 = json.get('like_counts')
+        if value1 is not None:
+            count = value1
+        elif value2 is not None:
+            count = value2
+        return count
+    
     def _try_get_value(self, source_name, target_name, dict, json):
         dict[source_name] = ''
         value = json.get(target_name)
