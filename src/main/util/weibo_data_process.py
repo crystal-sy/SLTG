@@ -231,7 +231,7 @@ def try_get_value(source_name, target_name, dict, json):
     
 def get_comment(id) :
     comment_list = []
-    get_weibo_comments_cookie(id, 0, 5000, None, comment_list)
+    get_weibo_comments_cookie(id, 0, 1000, None, comment_list)
     if not comment_list or len(comment_list) == 0:
         return
     
