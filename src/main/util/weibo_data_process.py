@@ -211,7 +211,7 @@ def try_get_text(text):
             result = result.replace(result[start:end], '').replace('</a>', '')
     except Exception :
         logger.info(u'@某人处理完成:%s', result)
-    return result
+    return result.replace("'","")
         
 def try_get_like_count(json):
     count = 0
@@ -251,7 +251,7 @@ def insert_comment(comment, id):
             db.insert_news_comment(data)
         except Exception :
             logger.error(u'评论插入异常:%s', data['text'])          
-    
+
 with open(root_path + file_name +".train", 'r', encoding='utf-8') as input:
     for line in input.readlines():
         tid, content, label = line.strip().split("\t")
@@ -276,4 +276,4 @@ with open(root_path + file_name +".test", 'r', encoding='utf-8') as input:
         try:
             get_comment(tid)
         except Exception :
-            logger.error(u'test 评论爬取异常:%s', tid) 
+            logger.error(u'test 评论爬取异常:%s', tid)

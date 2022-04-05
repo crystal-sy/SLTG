@@ -641,7 +641,7 @@ class Weibo(object):
                 result = result.replace(result[start:end], '').replace('</a>', '')
         except Exception :
             logger.info(u'@某人处理完成:%s', result)
-        return result
+        return result.replace("'","")
             
     def _try_get_like_count(self, json):
         count = 0
