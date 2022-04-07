@@ -47,8 +47,6 @@ from tensorflow.keras.layers import LSTM
 # 随机断开输入神经元，Dropout层用于防止过拟合。
 # Activation层（激活层对一个层的输出施加激活函数） 
 from tensorflow.keras.layers import Dense, Dropout, Activation
-from tensorflow.keras import backend
-from tensorflow.keras.layers import Layer
 """
 scikit-learn 是基于 Python 语言的机器学习工具
 简单高效的数据挖掘和数据分析工具
@@ -65,6 +63,9 @@ import multiprocessing
 import time
 import os
 import re
+from self_attention import Self_Attention
+import tensorflow as tf
+from sklearn.metrics import accuracy_score, classification_report
 
 # CPU运行
 # os.environ["CUDA_VISIBLE_DEVICES"]="-1"
@@ -88,55 +89,15 @@ data_dir = 'data/'
 result_dir = 'result/lstm_attention/' + nowTime + '/'
 model_dir = 'result/lstm_attention/'
 
-class Self_Attention(Layer):
-    def __init__(self, output_dim, **kwargs):
-        self.output_dim = output_dim
-        super(Self_Attention, self).__init__(**kwargs)
-        
-    def get_config(self):
-        config = super().get_config().copy()
-        config.update({
-            'output_dim': self.output_dim 
-        })
-        return config
-
-    def build(self, input_shape):
-        # 为该层创建一个可训练的权重
-        #inputs.shape = (batch_size, time_steps, seq_len)
-        self.kernel = self.add_weight(name='kernel',
-                                      shape=(3,input_shape[2], self.output_dim),
-                                      initializer='uniform',
-                                      trainable=True)
-        super(Self_Attention, self).build(input_shape)  # 一定要在最后调用它
-
-    def call(self, x):
-        WQ = backend.dot(x, self.kernel[0])
-        WK = backend.dot(x, self.kernel[1])
-        WV = backend.dot(x, self.kernel[2])
-
-        print("WQ.shape",WQ.shape)
-        print("K.permute_dimensions(WK, [0, 2, 1]).shape",backend.permute_dimensions(WK, [0, 2, 1]).shape)
-
-        QK = backend.batch_dot(WQ, backend.permute_dimensions(WK, [0, 2, 1]))
-        QK = QK / (64**0.5) #开根号，归一化系数
-        QK = backend.softmax(QK)
-        print("QK.shape", QK.shape)
-
-        V = backend.batch_dot(QK,WV)
-        return V
-
-    def compute_output_shape(self, input_shape):
-        return (input_shape[0],input_shape[1],self.output_dim)
-
 def loadfile():
     #文件输入
     neg = []
     pos = []
-    with open(data_dir + 'dataset/weibo/real.txt', 'r', encoding='UTF-8') as f:
+    with open(data_dir + 'pos.txt', 'r', encoding='UTF-8') as f:
         for line in f.readlines():
             pos.append(line)
         f.close()
-    with open(data_dir + 'dataset/weibo/fake.txt', 'r', encoding='UTF-8') as f:
+    with open(data_dir + 'neg.txt', 'r', encoding='UTF-8') as f:
         for line in f.readlines():
             neg.append(line)
         f.close()
@@ -148,7 +109,7 @@ def loadfile():
 def file_jieba_cut(text):
     result=[]
     for document in text:
-        result.append(jiebacut(clean_str_sst(document)) )
+        result.append(jiebacut(clean_str_sst(document)))
     return result
 
 # 去除特殊字符，前后空格和全部小写
@@ -220,7 +181,7 @@ def data2index(X_Vec):
     w2indx = []
     return data 
 
-def train_lstm(embedding_weights, x_train, y_train, x_test, y_test, version):
+def train_lstm(embedding_weights, x_train, y_train, x_test, y_test, y_test_1, version):
     if version is None :
         #Keras有两种不同的构建模型-顺序模型
         model = Sequential()
@@ -285,12 +246,13 @@ def train_lstm(embedding_weights, x_train, y_train, x_test, y_test, version):
     plt.savefig(result_dir + 'result.png') # show之前保存图片，之后保存图片为空白
     plt.show()
 
-    print ("Evaluate...")
+    print("Evaluate...")
     np.random.seed(200)
     np.random.shuffle(x_test) 
     np.random.seed(200)
     np.random.shuffle(y_test)
-    score = model.evaluate(x_test, y_test, batch_size=batch_size)
+    np.random.shuffle(y_test_1)
+    score = model.evaluate(x_test, y_test_1, batch_size=batch_size)
     print ('Test score:', score)
     
     # 保存结果
@@ -307,8 +269,14 @@ def train_lstm(embedding_weights, x_train, y_train, x_test, y_test, version):
         'Self_Attention': Self_Attention})
     with open(result_dir + 'modelsummary.txt', 'w') as f:
         loadModel.summary(print_fn=lambda x: f.write(x + '\n'))
-   
+        
+    y_pred_one_hot = model.predict(x=x_test, batch_size=batch_size)
+    y_pred = tf.math.argmax(y_pred_one_hot, axis=1)
 
+    print('\nTest accuracy: {}\n'.format(accuracy_score(y_test, y_pred)))
+    print('Classification report:')
+    target_names = ['class {:d}'.format(i) for i in np.arange(2)]
+    print(classification_report(y_test, y_pred, target_names=target_names, digits=4))
 
 # 1、获取文件数据
 X_Vec, y = loadfile()
@@ -324,9 +292,9 @@ index2 = sequence.pad_sequences(index, maxlen=lstm_input)
 x_train, x_test, y_train, y_test = train_test_split(index2, y, test_size=0.2)
 # 7、将原向量变为one-hot编码，数据转为num_classes数组
 y_train = kerasUtils.to_categorical(y_train, num_classes=2)
-y_test = kerasUtils.to_categorical(y_test, num_classes=2)
+y_test_1 = kerasUtils.to_categorical(y_test, num_classes=2)
 
-version = '20220319001007'
+version = '20220406004548'
 if version is None:
     # 8、获取权重
     embedding_weights = np.load(data_dir + 'word2vec/128/embedding_weights.npy', allow_pickle=True)
@@ -334,4 +302,4 @@ else :
     embedding_weights = []
     
 # 9、lstm+Self_Attention情感训练
-train_lstm(embedding_weights, x_train, y_train, x_test, y_test, version)
+train_lstm(embedding_weights, x_train, y_train, x_test, y_test, y_test_1, version)

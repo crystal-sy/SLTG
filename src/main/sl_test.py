@@ -25,14 +25,13 @@ from tensorflow.keras.preprocessing import sequence
 import tensorflow.keras.utils as kerasUtils
 # 加载整个模型结构
 from tensorflow.keras.models import load_model
+from sklearn.model_selection import train_test_split
 """ 
 keras.layers是keras的核心网络层
 keras的层主要包括：常用层（Core）、卷积层（Convolutional）、池化层（Pooling）、
 局部连接层、递归层（Recurrent）、嵌入层（ Embedding）、高级激活层、规范层、
 噪声层、包装层，当然也可以编写自己的层。
 """
-from tensorflow.keras import backend
-from tensorflow.keras.layers import Layer
 import tensorflow as tf
 import sys
 # multiprocessing包是Python中的多进程管理包。 与threading.Thread类似,
@@ -41,6 +40,7 @@ import multiprocessing
 import time
 import os
 import re
+from self_attention import Self_Attention
 from sklearn.metrics import accuracy_score, classification_report
 
 # CPU运行
@@ -65,55 +65,15 @@ data_dir = 'data/'
 result_dir = 'result/lstm_attention/' + nowTime + '/'
 model_dir = 'result/lstm_attention/'
 
-class Self_Attention(Layer):
-    def __init__(self, output_dim, **kwargs):
-        self.output_dim = output_dim
-        super(Self_Attention, self).__init__(**kwargs)
-        
-    def get_config(self):
-        config = super().get_config().copy()
-        config.update({
-            'output_dim': self.output_dim 
-        })
-        return config
-
-    def build(self, input_shape):
-        # 为该层创建一个可训练的权重
-        #inputs.shape = (batch_size, time_steps, seq_len)
-        self.kernel = self.add_weight(name='kernel',
-                                      shape=(3,input_shape[2], self.output_dim),
-                                      initializer='uniform',
-                                      trainable=True)
-        super(Self_Attention, self).build(input_shape)  # 一定要在最后调用它
-
-    def call(self, x):
-        WQ = backend.dot(x, self.kernel[0])
-        WK = backend.dot(x, self.kernel[1])
-        WV = backend.dot(x, self.kernel[2])
-
-        print("WQ.shape",WQ.shape)
-        print("K.permute_dimensions(WK, [0, 2, 1]).shape",backend.permute_dimensions(WK, [0, 2, 1]).shape)
-
-        QK = backend.batch_dot(WQ, backend.permute_dimensions(WK, [0, 2, 1]))
-        QK = QK / (64**0.5) #开根号，归一化系数
-        QK = backend.softmax(QK)
-        print("QK.shape", QK.shape)
-
-        V = backend.batch_dot(QK,WV)
-        return V
-
-    def compute_output_shape(self, input_shape):
-        return (input_shape[0],input_shape[1],self.output_dim)
-
 def loadfile():
     #文件输入
     neg = []
     pos = []
-    with open(data_dir + 'dataset/weibo/real.txt', 'r', encoding='UTF-8') as f:
+    with open(data_dir + 'pos.txt', 'r', encoding='UTF-8') as f:
         for line in f.readlines():
             pos.append(line)
         f.close()
-    with open(data_dir + 'dataset/weibo/fake.txt', 'r', encoding='UTF-8') as f:
+    with open(data_dir + 'neg.txt', 'r', encoding='UTF-8') as f:
         for line in f.readlines():
             neg.append(line)
         f.close()
@@ -125,7 +85,7 @@ def loadfile():
 def file_jieba_cut(text):
     result=[]
     for document in text:
-        result.append(jiebacut(clean_str_sst(document)) )
+        result.append(jiebacut(clean_str_sst(document)))
     return result
 
 # 去除特殊字符，前后空格和全部小写
@@ -209,7 +169,7 @@ def test_lstm(x_test, y_test, model):
     print('\nTest accuracy: {}\n'.format(accuracy_score(y_test, y_pred)))
     print('Classification report:')
     target_names = ['class {:d}'.format(i) for i in np.arange(2)]
-    print(classification_report(y_test, y_pred, target_names=target_names, digits=2))    
+    print(classification_report(y_test, y_pred, target_names=target_names, digits=4))
 
 # 1、获取文件数据
 X_Vec, y = loadfile()
@@ -220,11 +180,13 @@ X_Vec = data_prepare(X_Vec)
 # 4、文本转关键词序列号数组
 index = data2index(X_Vec)
 # 5、 序列预处理pad_sequences()序列填充,前面添0到voc_dim长度
-index2 = sequence.pad_sequences(index)
+index2 = sequence.pad_sequences(index, maxlen=lstm_input)
+# 6、随机取出测试集
+x_train, x_test, y_train, y_test = train_test_split(index2, y, test_size=0.2)
 
-version = '20220321005053'
+version = '20220406004548'
 model = load_model(model_dir + version + '\\lstm.h5', custom_objects = {
     'Self_Attention': Self_Attention})
     
 # 7、情感模型测试
-test_lstm(index2, y, model)
+test_lstm(x_test, y_test, model)
