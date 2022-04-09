@@ -12,10 +12,12 @@ from tensorflow.python.client import device_lib
 from tensorflow.keras.models import load_model
 # 自然语言处理NLP神器--gensim，词向量Word2Vec
 from matplotlib import pyplot as plt
- 
-def get_available_gpus():
-    local_device_protos = device_lib.list_local_devices()
-    return [x.name for x in local_device_protos if x.device_type == 'GPU']
+os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
+os.environ["CUDA_VISIBLE_DEVICES"]="-1"
+
+#def get_available_gpus():
+  #  local_device_protos = device_lib.list_local_devices()
+  #  return [x.name for x in local_device_protos if x.device_type == 'GPU']
 
 def train(x_train, y_train, vocab_size, feature_size, save_path):
     print("\nTrain...")
@@ -53,7 +55,7 @@ def train(x_train, y_train, vocab_size, feature_size, save_path):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='This is the TextCNN train project.')
     parser.add_argument('-p', '--padding_size', default=128, type=int, help='Padding size of sentences.(default=128)')
-    parser.add_argument('-e', '--embed_size', default=512, type=int, help='Word embedding size.(default=512)')
+    parser.add_argument('-e', '--embed_size', default=128, type=int, help='Word embedding size.(default=128)')
     parser.add_argument('-f', '--filter_sizes', default='3,4,5', help='Convolution kernel sizes.(default=3,4,5)')
     parser.add_argument('-n', '--num_filters', default=128, type=int, help='Number of each convolution kernel.(default=128)')
     parser.add_argument('-d', '--dropout_rate', default=0.5, type=float, help='Dropout rate in softmax layer.(default=0.5)')
