@@ -13,3 +13,5 @@
 /src/main/result/textCNN/
 /.idea/libraries/rumdetect2017.xml
 /src/main/result/lstm_attention/
+/src/main/GAN/pretrained_models/
+/src/main/GAN/pretrained_models_old/

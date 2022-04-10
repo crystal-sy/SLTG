@@ -8,6 +8,6 @@
 cd sltg
 
 # 安装依赖包
-pip install nltk -i http://pypi.douban.com/simple/ --trusted-host=pypi.douban.com/simple
+pip install tensorflow==2.3 -i http://pypi.douban.com/simple/ --trusted-host=pypi.douban.com/simple
 
 ```

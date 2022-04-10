@@ -61,7 +61,9 @@ class ROLLOUT(RNN):
     def get_reward(self, input_x, rollout_num, discriminator):
         rewards = []
         for i in range(rollout_num):
+            print("rollout_num", i)
             for given_num in tf.range(1, self.sequence_length):
+                print("given_num", given_num)
                 samples = self.generate_one_batch(input_x, given_num)
                 ypred_for_auc = discriminator.d_model(samples).numpy()
                 ypred = ypred_for_auc[:, 1]

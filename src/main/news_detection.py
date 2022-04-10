@@ -4,7 +4,7 @@ Created on Mon Feb 10 21:10:59 2021
 
 @author: styra
 """
-import numpy as np
+import json
 import jieba
 
 import os
@@ -15,8 +15,9 @@ import re
 import sys
 from config.sltg_config import stop_words_path, w2dic_path, lstm_path
 from self_attention import Self_Attention
+from tensorflow.keras.preprocessing import sequence
 
-voc_dim = 256 # word的向量维度
+lstm_input = 128 # lstm输入维度
 
 class analysis():
     def __init__(self, content, comment, w2dic, model, isFile = True):
@@ -97,16 +98,18 @@ class analysis():
         return stop_words
     
     def get_w2dic(self):
-        return np.load(w2dic_path, allow_pickle=True).item()
+        return json.load(open(w2dic_path, 'r'))
     
     def data2index(self, w2indx, text):
         data = []
         for sentence in text:
+            new_txt = []
             for word in sentence:
                 try:
-                    data.append(w2indx[word])
+                    new_txt.append(w2indx[word])
                 except:
-                    data.append(0)
+                    new_txt.append(0)
+            data.append(new_txt)
         return data 
 
     def transfer_word2vec(self, content, comment):
@@ -125,7 +128,8 @@ class analysis():
             w2dic = self.get_w2dic()
         # 5、文本转关键词序列号数组
         content_index = self.data2index(w2dic, content_text)
-        return content_index
+        index2 = sequence.pad_sequences(content_index,  padding='post', maxlen=lstm_input)
+        return index2
     
     def rumor_predict(self, content, comment):
         content = content.replace("\n", "")

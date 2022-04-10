@@ -27,13 +27,13 @@ class Self_Attention(Layer):
         WK = backend.dot(x, self.kernel[1])
         WV = backend.dot(x, self.kernel[2])
 
-        print("WQ.shape",WQ.shape)
-        print("K.permute_dimensions(WK, [0, 2, 1]).shape",backend.permute_dimensions(WK, [0, 2, 1]).shape)
+        # print("WQ.shape",WQ.shape)
+        # print("K.permute_dimensions(WK, [0, 2, 1]).shape",backend.permute_dimensions(WK, [0, 2, 1]).shape)
 
         QK = backend.batch_dot(WQ, backend.permute_dimensions(WK, [0, 2, 1]))
         QK = QK / (64**0.5) #开根号，归一化系数
         QK = backend.softmax(QK)
-        print("QK.shape", QK.shape)
+        # print("QK.shape", QK.shape)
 
         V = backend.batch_dot(QK,WV)
         return V

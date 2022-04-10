@@ -13,6 +13,7 @@ numpy是python扩展程序库，支持大量的维度数组与矩阵运算，
 import numpy as np 
 # jieba分词
 import jieba
+import json
 # 自然语言处理NLP神器--gensim，词向量Word2Vec
 from matplotlib import pyplot as plt
 
@@ -80,8 +81,8 @@ np.random.seed()
 cpu_count = multiprocessing.cpu_count() - 4  # 4CPU数量
 voc_dim = 128 # word的向量维度
 lstm_input = 128 # lstm输入维度
-epoch_time = 10 # epoch 100
-batch_size = 16 # batch 32
+epoch_time = 20 # epoch 100
+batch_size = 32 # batch 32
 now = int(time.time())
 timeArray = time.localtime(now)
 nowTime = time.strftime("%Y%m%d%H%M%S", timeArray)
@@ -162,34 +163,28 @@ def stop_words_list(filepath = data_dir + 'stop_words.txt'):
 
 def data2index(X_Vec):
     data = []
-    w2indx = np.load(data_dir + 'word2vec/128/w2dic.npy', allow_pickle=True).item()
+    word_dict = json.load(open(data_dir + 'vocab.json', 'r'))
     for sentence in X_Vec:
         new_txt = []
         for word in sentence:
             try:
-                new_txt.append(w2indx[word])
+                new_txt.append(word_dict[word])
             except:
                 new_txt.append(0)
         data.append(new_txt)
-    # 追加写入
-    if not os.path.exists(result_dir):
-        os.mkdir(result_dir)
-    fW = open(result_dir + 'data2index_result.txt', 'a', encoding='UTF-8')
-    fW.write(''.join(str(i) for i in data))
-    fW.write('\n')
-    fW.close()
-    w2indx = []
-    return data 
+        
+    vocab_size = len(word_dict)
+    print("Vocabulary size: {:d}".format(vocab_size))
+    return data
 
-def train_lstm(embedding_weights, x_train, y_train, x_test, y_test, y_test_1, version):
+def train_lstm(vocab_size, x_train, y_train, x_test, y_test, y_test_1, version):
     if version is None :
         #Keras有两种不同的构建模型-顺序模型
         model = Sequential()
         # 嵌入层
-        model.add(Embedding(input_dim=len(embedding_weights),
+        model.add(Embedding(input_dim=vocab_size,
                             output_dim=voc_dim,
-                            mask_zero=True,
-                            weights=[embedding_weights],
+                            embeddings_initializer=tf.random_normal_initializer(stddev=0.1),
                             input_length=lstm_input)) 
         model.add(Self_Attention(128))
         model.add(LSTM(128, activation='softsign')) # 激活函数softsign
@@ -197,7 +192,6 @@ def train_lstm(embedding_weights, x_train, y_train, x_test, y_test, y_test_1, ve
         model.add(Dense(2)) # 全连接层
         model.add(Activation('sigmoid'))
         
-        embedding_weights = []
         print ('Compiling the Model...')
         # 均方误差mean_squared_error/mse
         # 平均绝对误差mean_absolute_error/mae
@@ -286,20 +280,15 @@ X_Vec = file_jieba_cut(X_Vec)
 X_Vec = data_prepare(X_Vec)
 # 4、文本转关键词序列号数组
 index = data2index(X_Vec)
-# 5、 序列预处理pad_sequences()序列填充,前面添0到voc_dim长度
-index2 = sequence.pad_sequences(index, maxlen=lstm_input)
+# 5、 序列预处理pad_sequences()序列填充,尾部添0到voc_dim长度
+index2 = sequence.pad_sequences(index,  padding='post', maxlen=lstm_input)
 # 6、函数划分训练、测试数据
 x_train, x_test, y_train, y_test = train_test_split(index2, y, test_size=0.2)
 # 7、将原向量变为one-hot编码，数据转为num_classes数组
 y_train = kerasUtils.to_categorical(y_train, num_classes=2)
 y_test_1 = kerasUtils.to_categorical(y_test, num_classes=2)
 
-version = '20220406004548'
-if version is None:
-    # 8、获取权重
-    embedding_weights = np.load(data_dir + 'word2vec/128/embedding_weights.npy', allow_pickle=True)
-else :
-    embedding_weights = []
-    
-# 9、lstm+Self_Attention情感训练
-train_lstm(embedding_weights, x_train, y_train, x_test, y_test, y_test_1, version)
+version = None
+vocab_size = 30000
+# 8、lstm+Self_Attention情感训练
+train_lstm(vocab_size, x_train, y_train, x_test, y_test, y_test_1, version)

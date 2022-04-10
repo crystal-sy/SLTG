@@ -54,8 +54,8 @@ piyao_org_url = 'https://dawa.news.cn/nodeart/page?nid=11241459&pgnum={}&cnt=16&
 piyao_org_spider = 'piyaoOrgSpider'
 
 #sltg
-version = '20220319001007'
-w2dic_path = project_path + 'data' + os.sep + 'word2vec'+ os.sep + '128' + os.sep + 'w2dic.npy'
-lstm_path = project_path + 'result' + os.sep + 'lstm_attention' + os.sep + version + os.sep + 'lstm.h5'
+version = '20220410185516'
+w2dic_path = project_path + 'data' + os.sep + 'vocab.json'
+lstm_path = project_path + 'result' + os.sep + 'lstm_attention' + os.sep + version + os.sep + 'discriminator.h5'
 stop_words_path = project_path + 'data' + os.sep + 'stop_words.txt'
 

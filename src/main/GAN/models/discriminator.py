@@ -1,49 +1,35 @@
-from tensorflow.keras.models import load_model
-from tensorflow.keras import backend
-from tensorflow.keras.layers import Layer
+from tensorflow.keras.models import load_model, Model
+from tensorflow.keras.layers import Dense
+import os
+import sys
+# 项目路径,将项目路径保存
+project_path = os.path.abspath(os.path.join(os.getcwd(), ".."))
+sys.path.append(project_path)
 
-model_dir = 'D:\\sycode\\SLTG\\src\\main\\result\\lstm_attention\\'
+from self_attention import Self_Attention
 
-class Self_Attention(Layer):
-    def __init__(self, output_dim, **kwargs):
-        self.output_dim = output_dim
-        super(Self_Attention, self).__init__(**kwargs)
-        
-    def get_config(self):
-        config = super().get_config().copy()
-        config.update({
-            'output_dim': self.output_dim 
-        })
-        return config
+model_dir = project_path + '\\result\\lstm_attention\\'
+
+#Highway Networks 允许信息高速无阻碍的通过深层神经网络的各层，这样有效的减缓了梯度的问题，使深层神经网络不在仅仅具有浅层神经网络的效果。
+class Highway(Model):
+    """
+    t = sigmoid(Wy + b)
+    z = t * g(Wy + b) + (1 - t) * y
+     """
+    def __init__(self, **kwargs):
+        super(Highway, self).__init__(**kwargs)
 
     def build(self, input_shape):
-        # 为该层创建一个可训练的权重
-        #inputs.shape = (batch_size, time_steps, seq_len)
-        self.kernel = self.add_weight(name='kernel',
-                                      shape=(3,input_shape[2], self.output_dim),
-                                      initializer='uniform',
-                                      trainable=True)
-        super(Self_Attention, self).build(input_shape)  # 一定要在最后调用它
+        output_dim = input_shape[-1]
+        self.dense_g = Dense(output_dim, activation="relu")
+        self.dense_t = Dense(output_dim, activation="sigmoid")
 
-    def call(self, x):
-        WQ = backend.dot(x, self.kernel[0])
-        WK = backend.dot(x, self.kernel[1])
-        WV = backend.dot(x, self.kernel[2])
-
-        print("WQ.shape",WQ.shape)
-        print("K.permute_dimensions(WK, [0, 2, 1]).shape",backend.permute_dimensions(WK, [0, 2, 1]).shape)
-
-        QK = backend.batch_dot(WQ, backend.permute_dimensions(WK, [0, 2, 1]))
-        QK = QK / (64**0.5) #开根号，归一化系数
-        QK = backend.softmax(QK)
-        print("QK.shape", QK.shape)
-
-        V = backend.batch_dot(QK,WV)
-        return V
-
-    def compute_output_shape(self, input_shape):
-        return (input_shape[0],input_shape[1],self.output_dim)
-
+    def call(self, input_tensor, training=False):
+        g = self.dense_g(input_tensor, training=training)
+        t = self.dense_t(input_tensor, training=training)
+        o = t * g + (1. - t) * input_tensor
+        return o
+    
 class Discriminator:
     def __init__(self, version):
         self.version = version
@@ -56,5 +42,6 @@ class Discriminator:
         self.d_model.save(filename)
 
     def load(self):
-        self.d_model= load_model(model_dir + self.version + '/lstm.h5', 
+        self.d_model = load_model(model_dir + self.version + '/lstm.h5', 
                                  custom_objects = {'Self_Attention': Self_Attention})
+        # self.d_model.add(Highway())

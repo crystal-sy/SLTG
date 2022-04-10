@@ -14,7 +14,7 @@ class RNN(object):
         self.grad_clip = 5.0#设置一个梯度减切的阈值，防止梯度爆炸
 
         self.generator_model = tf.keras.models.Sequential([
-            Input((self.sequence_length,), dtype=tf.int32),
+            Input((self.sequence_length,)),
             Embedding(self.num_emb, self.emb_dim, embeddings_initializer=tf.random_normal_initializer(stddev=0.1)),
             LSTM(self.hidden_dim, kernel_initializer=tf.random_normal_initializer(stddev=0.1),
                  recurrent_initializer=tf.random_normal_initializer(stddev=0.1), return_sequences=True),
