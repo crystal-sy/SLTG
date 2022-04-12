@@ -79,7 +79,7 @@ if __name__ == "__main__":
                                                    config.BATCH_SIZE,
                                                    config.SEQ_LENGTH)
             logger.info(u'dis_dataset: %s', i)
-            discriminator.train(dis_dataset, 1, num_steps * 2)
+            discriminator.train(dis_dataset, 3, num_steps * 2)
     generator.save(config.generator_file)
     discriminator.save(config.discriminator_file)
 
