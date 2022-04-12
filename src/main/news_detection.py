@@ -4,9 +4,8 @@ Created on Mon Feb 10 21:10:59 2021
 
 @author: styra
 """
-import json
 import jieba
-
+import numpy as np 
 import os
 os.environ["CUDA_VISIBLE_DEVICES"]="-1"    
 from tensorflow.keras.models import load_model
@@ -59,7 +58,7 @@ class analysis():
     
     # 去除特殊字符，前后空格和全部小写
     def clean_str_sst(self, string):
-        string = re.sub("[，。 :,.；|-“”——_+&;@、《》～（）())#O！：【】\ufeff]", "", string)
+        string = re.sub('[，。:,.； |-“”""——_+&;@、《》～（）())#O！：【】\ufeff]', "", string)
         return string.strip().lower()
     
     def jiebacut(self, text, nowTime):
@@ -98,7 +97,7 @@ class analysis():
         return stop_words
     
     def get_w2dic(self):
-        return json.load(open(w2dic_path, 'r'))
+        return np.load(w2dic_path, allow_pickle=True).item()
     
     def data2index(self, w2indx, text):
         data = []

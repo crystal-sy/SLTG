@@ -10,12 +10,13 @@ Created on Sat Jan 23 22:53:29 2021
 numpy是python扩展程序库，支持大量的维度数组与矩阵运算，
 此外也针对数组运算提供大量的数学函数库
 """
-import numpy as np 
+import numpy as np
 # jieba分词
 import jieba
 # 自然语言处理NLP神器--gensim，词向量Word2Vec
 from gensim.models.word2vec import Word2Vec
 
+import re
 import sys
 # multiprocessing包是Python中的多进程管理包。 与threading.Thread类似,
 # 它可以利用multiprocessing.Process对象来创建一个进程。
@@ -23,6 +24,10 @@ import multiprocessing
 import time
 import os
 from gensim.models import KeyedVectors
+
+# 项目路径,将项目路径保存
+project_path = os.path.abspath(os.path.join(os.getcwd(), "..")) + os.sep + 'main'
+sys.path.append(project_path)
 
 # CPU运行
 os.environ["CUDA_VISIBLE_DEVICES"]="-1"
@@ -38,20 +43,16 @@ cpu_count = multiprocessing.cpu_count() - 4  # 4CPU数量
 voc_dim = 128 # word的向量维度
 min_out = 3 # 单词出现次数
 window_size = 5 # WordVec中的滑动窗口大小
-data_dir = "..\main\data" + os.sep
-result_dir = "..\main\result" + os.sep
+data_dir = project_path + os.sep + "data" + os.sep
+result_dir = project_path + os.sep + "result" + os.sep
 
 def loadfile():
     #文件输入
     neg = []
     pos = []
-    with open(data_dir + 'pos.txt', 'r', encoding='UTF-8') as f:
+    with open(data_dir + 'real_data.txt', 'r', encoding='UTF-8') as f:
         for line in f.readlines():
             pos.append(line)
-        f.close()
-    with open(data_dir + 'neg.txt', 'r', encoding='UTF-8') as f:
-        for line in f.readlines():
-            neg.append(line)
         f.close()
     X_Vec = np.concatenate((pos, neg)) #数组拼接
     return X_Vec
@@ -63,8 +64,13 @@ def file_jieba_cut(text):
     
     result=[]
     for document in text:
-        result.append(jiebacut(document.replace('\n', ''), nowTime) )
+        result.append(jiebacut(clean_str_sst(document.replace('\n', '')), nowTime) )
     return result
+
+# 去除特殊字符，前后空格和全部小写
+def clean_str_sst(string):
+    string = re.sub('[，。:,.； |-“”""——_+&;@、《》～（）())#O！：【】\ufeff]', "", string)
+    return string.strip().lower()
 
 def jiebacut(text, nowTime):
     # 将语句分词
@@ -72,7 +78,6 @@ def jiebacut(text, nowTime):
     sent_list = jieba.cut(text, cut_all = False) # 精确模式
     ret = list(sent_list)
     
-    """
     # 追加写入
     if not os.path.exists(result_dir):
         os.mkdir(result_dir)
@@ -80,7 +85,6 @@ def jiebacut(text, nowTime):
     fW.write(' '.join(ret))
     fW.write('\n')
     fW.close()
-    """
     return ret
 
 def word2vec_train(X_Vec):
@@ -96,20 +100,19 @@ def word2vec_train(X_Vec):
     model.train(sentences)来实现
     """
     
-    model_word = Word2Vec(size=voc_dim,
+    model_word = Word2Vec(vector_size=voc_dim,
                         min_count=min_out,
                         window=window_size,
-                        workers=cpu_count,
-                        iter=5)
+                        workers=cpu_count)
     model_word.build_vocab(X_Vec)
     model_word.train(X_Vec, total_examples=model_word.corpus_count, epochs=model_word.epochs)
     
-    dict = list(model_word.wv.vocab.keys())
+    dict = list(model_word.wv.index_to_key)
     input_dim = len(dict) + 1 #下标0空出来给不够10的字
     embedding_weights = np.zeros((input_dim, voc_dim)) 
     w2dic={}
     for i in range(len(dict)):
-        embedding_weights[i+1, :] = model_word[dict[i]]
+        embedding_weights[i+1, :] = model_word.wv[dict[i]]
         w2dic[dict[i]] = i+1
         
     print(len(w2dic))
@@ -124,10 +127,10 @@ def word2vec_train(X_Vec):
     # 保存为另外一种格式，方便查看对应分出来的keys
     model_word.wv.save_word2vec_format(result_dir + 'Word2Vec.txt',binary = False)
     
-    w2indx = np.load(result_dir + 'w2dic.npy').item()
+    w2indx = np.load(result_dir + 'w2dic.npy', allow_pickle=True).item()
     print(len(w2indx))
     print(w2indx['父母'])
-    embedding_weights = np.load(result_dir + 'embedding_weights.npy')
+    embedding_weights = np.load(result_dir + 'embedding_weights.npy', allow_pickle=True)
     print(len(embedding_weights))
     print(embedding_weights[0])
     print(embedding_weights[2])
@@ -167,4 +170,4 @@ X_Vec = file_jieba_cut(X_Vec)
 # 3、词向量训练，构造词向量字典
 word2vec_train(X_Vec)
 # 4、词向量保存
-save_word2vec()
+# save_word2vec()
