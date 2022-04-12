@@ -13,7 +13,6 @@ numpy是python扩展程序库，支持大量的维度数组与矩阵运算，
 import numpy as np 
 # jieba分词
 import jieba
-import json
 # 自然语言处理NLP神器--gensim，词向量Word2Vec
 from matplotlib import pyplot as plt
 
@@ -30,6 +29,7 @@ import tensorflow.keras.utils as kerasUtils
 from tensorflow.keras.models import Sequential
 # 加载整个模型结构
 from tensorflow.keras.models import load_model
+from tensorflow.keras import regularizers
 """ 
 keras.layers是keras的核心网络层
 keras的层主要包括：常用层（Core）、卷积层（Convolutional）、池化层（Pooling）、
@@ -60,7 +60,6 @@ import yaml
 import sys
 # multiprocessing包是Python中的多进程管理包。 与threading.Thread类似,
 # 它可以利用multiprocessing.Process对象来创建一个进程。
-import multiprocessing
 import time
 import os
 import re
@@ -78,17 +77,19 @@ sys.setrecursionlimit(1000000)
 np.random.seed()
 
 # 参数配置
-cpu_count = multiprocessing.cpu_count() - 4  # 4CPU数量
 voc_dim = 128 # word的向量维度
 lstm_input = 128 # lstm输入维度
 epoch_time = 20 # epoch 100
 batch_size = 32 # batch 32
+version = None
 now = int(time.time())
 timeArray = time.localtime(now)
 nowTime = time.strftime("%Y%m%d%H%M%S", timeArray)
 data_dir = 'data/'
-result_dir = 'result/lstm_attention/' + nowTime + '/'
-model_dir = 'result/lstm_attention/'
+result_dir = 'result' + os.sep
+model_dir = result_dir + 'lstm_attention' + os.sep 
+sl_result_dir = model_dir + nowTime + os.sep
+
 
 def loadfile():
     #文件输入
@@ -115,7 +116,7 @@ def file_jieba_cut(text):
 
 # 去除特殊字符，前后空格和全部小写
 def clean_str_sst(string):
-    string = re.sub("[，。:,.；|-“”——_+&;@、《》～（）())#O！：【】\ufeff]", "", string)
+    string = re.sub('[，。:,.； |-“”""——_+&;@、《》～（）())#O！：【】\ufeff]', "", string)
     return string.strip().lower()
 
 def jiebacut(text):
@@ -125,9 +126,9 @@ def jiebacut(text):
     ret = list(sent_list)
     
     # 追加写入
-    if not os.path.exists(result_dir):
-        os.mkdir(result_dir)
-    fW = open(result_dir + 'jieba_result.txt', 'a', encoding='UTF-8')
+    if not os.path.exists(sl_result_dir):
+        os.mkdir(sl_result_dir)
+    fW = open(sl_result_dir + 'jieba_result.txt', 'a', encoding='UTF-8')
     fW.write(' '.join(ret))
     fW.write('\n')
     fW.close()
@@ -145,9 +146,9 @@ def data_prepare(text):
         result.append(ret)
         
     # 追加写入
-    if not os.path.exists(result_dir):
-        os.mkdir(result_dir)
-    fW = open(result_dir + 'prepare_result.txt', 'a', encoding='UTF-8')
+    if not os.path.exists(sl_result_dir):
+        os.mkdir(sl_result_dir)
+    fW = open(sl_result_dir + 'prepare_result.txt', 'a', encoding='UTF-8')
     fW.write(''.join(str(i) for i in result))
     fW.write('\n')
     fW.close()
@@ -163,7 +164,7 @@ def stop_words_list(filepath = data_dir + 'stop_words.txt'):
 
 def data2index(X_Vec):
     data = []
-    word_dict = json.load(open(data_dir + 'vocab.json', 'r'))
+    word_dict = np.load(result_dir + 'w2dic.npy', allow_pickle=True).item()
     for sentence in X_Vec:
         new_txt = []
         for word in sentence:
@@ -177,21 +178,25 @@ def data2index(X_Vec):
     print("Vocabulary size: {:d}".format(vocab_size))
     return data
 
-def train_lstm(vocab_size, x_train, y_train, x_test, y_test, y_test_1, version):
+def train_lstm(embedding_weights, x_train, y_train, x_test, y_test, y_test_1, version):
     if version is None :
         #Keras有两种不同的构建模型-顺序模型
         model = Sequential()
         # 嵌入层
-        model.add(Embedding(input_dim=vocab_size,
-                            output_dim=voc_dim,
-                            embeddings_initializer=tf.random_normal_initializer(stddev=0.1),
-                            input_length=lstm_input)) 
+        model.add(Embedding(input_dim=len(embedding_weights),
+                           output_dim=voc_dim,
+                           mask_zero=True,
+                           weights=[embedding_weights],
+                           input_length=lstm_input))
         model.add(Self_Attention(128))
         model.add(LSTM(128, activation='softsign')) # 激活函数softsign
+        # model.add(Flatten(data_format='channels_last'))
         model.add(Dropout(0.5)) # 防止过拟合
-        model.add(Dense(2)) # 全连接层
+        model.add(Dense(2, kernel_regularizer=regularizers.l2(0.003))) # 全连接层
+        # model.add(Dense(2)) # 全连接层
         model.add(Activation('sigmoid'))
-        
+
+        embedding_weights = []
         print ('Compiling the Model...')
         # 均方误差mean_squared_error/mse
         # 平均绝对误差mean_absolute_error/mae
@@ -223,10 +228,10 @@ def train_lstm(vocab_size, x_train, y_train, x_test, y_test, y_test_1, version):
     """
     print ("Train...")  # batch_size=32
     #数据太集中，打乱顺序
-    np.random.seed(200)
-    np.random.shuffle(x_train) 
-    np.random.seed(200)
-    np.random.shuffle(y_train)
+    # np.random.seed(200)
+    # np.random.shuffle(x_train) 
+    # np.random.seed(200)
+    # np.random.shuffle(y_train)
  
     h = model.fit(x_train, y_train, batch_size=batch_size, epochs=epoch_time, 
               verbose=1,
@@ -237,31 +242,31 @@ def train_lstm(vocab_size, x_train, y_train, x_test, y_test, y_test_1, version):
     plt.plot(h.history["acc"],label="train_acc")
     plt.plot(h.history["val_acc"],label="val_acc")
     plt.legend()
-    plt.savefig(result_dir + 'result.png') # show之前保存图片，之后保存图片为空白
+    plt.savefig(sl_result_dir + 'result.png') # show之前保存图片，之后保存图片为空白
     plt.show()
 
     print("Evaluate...")
-    np.random.seed(200)
-    np.random.shuffle(x_test) 
-    np.random.seed(200)
-    np.random.shuffle(y_test)
-    np.random.shuffle(y_test_1)
+    # np.random.seed(200)
+    # np.random.shuffle(x_test) 
+    # np.random.seed(200)
+    # np.random.shuffle(y_test)
+    # np.random.shuffle(y_test_1)
     score = model.evaluate(x_test, y_test_1, batch_size=batch_size)
     print ('Test score:', score)
     
     # 保存结果
-    if not os.path.exists(result_dir):
-        os.mkdir(result_dir)
+    if not os.path.exists(sl_result_dir):
+        os.mkdir(sl_result_dir)
     yaml_string = model.to_yaml()
-    with open(result_dir + 'lstm.yml', 'w') as outfile:
+    with open(sl_result_dir + 'lstm.yml', 'w') as outfile:
         outfile.write(yaml.dump(yaml_string, default_flow_style=True))
-    model.save(result_dir + 'lstm.h5')
+    model.save(sl_result_dir + 'lstm.h5')
     # kerasUtils.plot_model(model, to_file = result_dir + 'model.png')
     
     # 展开模型参数
-    loadModel = load_model(result_dir + 'lstm.h5', custom_objects = {
+    loadModel = load_model(sl_result_dir + 'lstm.h5', custom_objects = {
         'Self_Attention': Self_Attention})
-    with open(result_dir + 'modelsummary.txt', 'w') as f:
+    with open(sl_result_dir + 'modelsummary.txt', 'w') as f:
         loadModel.summary(print_fn=lambda x: f.write(x + '\n'))
         
     y_pred_one_hot = model.predict(x=x_test, batch_size=batch_size)
@@ -288,7 +293,10 @@ x_train, x_test, y_train, y_test = train_test_split(index2, y, test_size=0.2)
 y_train = kerasUtils.to_categorical(y_train, num_classes=2)
 y_test_1 = kerasUtils.to_categorical(y_test, num_classes=2)
 
-version = None
-vocab_size = 30000
+if version is None:
+    # 8、获取权重
+    embedding_weights = np.load(result_dir + 'embedding_weights.npy', allow_pickle=True)
+else :
+    embedding_weights = []
 # 8、lstm+Self_Attention情感训练
-train_lstm(vocab_size, x_train, y_train, x_test, y_test, y_test_1, version)
+train_lstm(embedding_weights, x_train, y_train, x_test, y_test, y_test_1, version)
