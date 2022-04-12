@@ -7,16 +7,6 @@ import sys
 project_path = os.path.abspath(os.path.join(os.getcwd(), ".."))
 sys.path.append(project_path)
 
-from config import sltg_config as sl_config
-import logging
-import logging.config
-import warnings
-
-warnings.filterwarnings('ignore')
-    
-logging.config.fileConfig(sl_config.logging_path)
-logger = logging.getLogger('spider')
-
 result_dir = project_path + os.sep + 'result' + os.sep
 
 class RNN(object):
@@ -88,7 +78,7 @@ class RNN(object):
             for _ in range(num_batches):
                 generated_samples = self.generate_one_batch().numpy()
                 for poem in generated_samples:
-                   logger.info(u' '.join([str(x) for x in poem]), file=fout)
+                   print(' '.join([str(x) for x in poem]), file=fout)
 
     def create_optimizer(self, *args, **kwargs):
         return None

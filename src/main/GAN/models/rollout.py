@@ -24,7 +24,7 @@ logger = logging.getLogger('spider')
 #而判别器获得一个完整的序列数据后，会计算出奖励Reword，实现对生成器的指导。
 class ROLLOUT(RNN):
     def __init__(self, lstm, update_rate):
-        super(ROLLOUT, self).__init__(lstm.num_emb, lstm.batch_size, lstm.emb_dim, lstm.hidden_dim,
+        super(ROLLOUT, self).__init__(lstm.batch_size, lstm.emb_dim, lstm.hidden_dim,
                                       lstm.sequence_length)
         self.lstm = lstm
         self.update_rate = update_rate
