@@ -5,10 +5,26 @@ import tensorflow as tf
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.optimizers import Adam
 
+import os
+import sys
+# 项目路径,将项目路径保存
+project_path = os.path.abspath(os.path.join(os.getcwd(), ".."))
+sys.path.append(project_path)
+
+from config import sltg_config as sl_config
+import logging
+import logging.config
+import warnings
+
+warnings.filterwarnings('ignore')
+    
+logging.config.fileConfig(sl_config.logging_path)
+logger = logging.getLogger('spider')
+
 
 class Generator(RNN):
-    def __init__(self, num_emb, batch_size, emb_dim, hidden_dim, sequence_length, learning_rate=0.01):
-        super(Generator, self).__init__(num_emb, batch_size, emb_dim, hidden_dim, sequence_length, learning_rate)
+    def __init__(self, batch_size, emb_dim, hidden_dim, sequence_length, learning_rate=0.01):
+        super(Generator, self).__init__(batch_size, emb_dim, hidden_dim, sequence_length, learning_rate)
         #容器构建神经网络，依据层名或下标获得层对象
         self.generator_model = Sequential(self.generator_model.layers)
         self.generator_optimizer = self.create_optimizer(
@@ -24,7 +40,7 @@ class Generator(RNN):
         ds = dataset.map(lambda x: (tf.pad(x[:, 0:-1], ([0, 0], [1, 0]), "CONSTANT", 0), x)).repeat(
             num_epochs)
         pretrain_loss = self.generator_model.fit(ds, verbose=1, epochs=num_epochs, steps_per_epoch=num_steps)
-        print("Pretrain generator loss: ", pretrain_loss)
+        logger.info(u'Pretrain generator loss: : %s', pretrain_loss)
         return pretrain_loss
 
     def train_step(self, x, rewards):
@@ -33,7 +49,7 @@ class Generator(RNN):
             x,
             sample_weight=rewards * self.batch_size * self.sequence_length
         )
-        print("Generator Loss: ", train_loss)
+        logger.info(u'Generator Loss: : %s', train_loss)
         return train_loss
 
     def create_optimizer(self, *args, **kwargs):

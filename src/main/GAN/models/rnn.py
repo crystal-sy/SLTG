@@ -1,10 +1,26 @@
 import tensorflow as tf
 from tensorflow.keras.layers import Input, Embedding, Dense, LSTM
+import numpy as np 
+import os
+import sys
+# 项目路径,将项目路径保存
+project_path = os.path.abspath(os.path.join(os.getcwd(), ".."))
+sys.path.append(project_path)
 
+from config import sltg_config as sl_config
+import logging
+import logging.config
+import warnings
+
+warnings.filterwarnings('ignore')
+    
+logging.config.fileConfig(sl_config.logging_path)
+logger = logging.getLogger('spider')
+
+result_dir = project_path + os.sep + 'result' + os.sep
 
 class RNN(object):
-    def __init__(self, num_emb, batch_size, emb_dim, hidden_dim, sequence_length, learning_rate=0.01):
-        self.num_emb = num_emb
+    def __init__(self, batch_size, emb_dim, hidden_dim, sequence_length, learning_rate=0.01):
         self.batch_size = batch_size
         self.emb_dim = emb_dim
         self.hidden_dim = hidden_dim
@@ -12,10 +28,17 @@ class RNN(object):
         self.start_token_vec = tf.constant([0] * self.batch_size, dtype=tf.int32)
         self.learning_rate = learning_rate
         self.grad_clip = 5.0#设置一个梯度减切的阈值，防止梯度爆炸
+        embedding_weights = np.load(result_dir + 'embedding_weights.npy', allow_pickle=True)
+        self.num_emb = len(embedding_weights)
 
         self.generator_model = tf.keras.models.Sequential([
             Input((self.sequence_length,)),
-            Embedding(self.num_emb, self.emb_dim, embeddings_initializer=tf.random_normal_initializer(stddev=0.1)),
+            # Embedding(self.num_emb, self.emb_dim, embeddings_initializer=tf.random_normal_initializer(stddev=0.1)),
+            Embedding(input_dim=self.num_emb,
+                               output_dim=self.emb_dim,
+                               mask_zero=True,
+                               weights=[embedding_weights],
+                               input_length=self.hidden_dim),
             LSTM(self.hidden_dim, kernel_initializer=tf.random_normal_initializer(stddev=0.1),
                  recurrent_initializer=tf.random_normal_initializer(stddev=0.1), return_sequences=True),
             Dense(self.num_emb, kernel_initializer=tf.random_normal_initializer(stddev=0.1), activation="softmax")
@@ -65,7 +88,7 @@ class RNN(object):
             for _ in range(num_batches):
                 generated_samples = self.generate_one_batch().numpy()
                 for poem in generated_samples:
-                    print(' '.join([str(x) for x in poem]), file=fout)
+                   logger.info(u' '.join([str(x) for x in poem]), file=fout)
 
     def create_optimizer(self, *args, **kwargs):
         return None

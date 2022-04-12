@@ -2,6 +2,22 @@ import numpy as np
 import tensorflow as tf
 
 from models.rnn import RNN
+import os
+import sys
+# 项目路径,将项目路径保存
+project_path = os.path.abspath(os.path.join(os.getcwd(), ".."))
+sys.path.append(project_path)
+
+from config import sltg_config as sl_config
+import logging
+import logging.config
+import warnings
+
+warnings.filterwarnings('ignore')
+    
+logging.config.fileConfig(sl_config.logging_path)
+logger = logging.getLogger('spider')
+
 
 #SeqGAN中采用蒙特卡洛搜索方式，从已有状态推导采样出未来的状态，
 #从而让生成器可以向判别器输出一个完整的句子序列，这种采样策略称为rollout policy。
@@ -61,9 +77,9 @@ class ROLLOUT(RNN):
     def get_reward(self, input_x, rollout_num, discriminator):
         rewards = []
         for i in range(rollout_num):
-            print("rollout_num", i)
+            logger.info(u'rollout_num: %s', i)
             for given_num in tf.range(1, self.sequence_length):
-                print("given_num", given_num)
+                logger.info(u'given_num: %s', given_num)
                 samples = self.generate_one_batch(input_x, given_num)
                 ypred_for_auc = discriminator.d_model(samples).numpy()
                 ypred = ypred_for_auc[:, 1]
