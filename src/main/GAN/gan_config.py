@@ -18,15 +18,13 @@ dis_dropout_keep_prob = 0.75 #判别器神经网络丢弃保留率，用于防�
 #较大的数值会让各个特征对模型的影响力趋于均匀，不会有单个特征把持整个模型的表现。需要调节来控制过拟合
 dis_l2_reg_lambda = 0.2
 
-LSTM_VERSION = '20220410185516'
+LSTM_VERSION = '20220412224218'
 
 # Epoch Number
-PRE_EPOCH_NUM = 2
-EPOCH_NUM = 1
+PRE_EPOCH_NUM = 10
+EPOCH_NUM = 5
 #批量生成文本数据
-generated_num = 2000
-
-vocab_size = 30000
+generated_num = 3000
 
 # Dataset
 dataset_path = 'dataset/real_data.txt'
@@ -39,5 +37,3 @@ generated_file = 'dataset/generated_file.txt'
 pretrained_generator_file = "pretrained_models/pretrained_generator.h5"
 generator_file = "pretrained_models/generator.h5"
 discriminator_file = "pretrained_models/discriminator.h5"
-
-tokenizer_file = 'pretrained_models/tokenizer.pickle'
