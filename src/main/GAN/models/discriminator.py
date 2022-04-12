@@ -44,4 +44,3 @@ class Discriminator:
     def load(self):
         self.d_model = load_model(model_dir + self.version + '/lstm.h5', 
                                  custom_objects = {'Self_Attention': Self_Attention})
-        # self.d_model.add(Highway())
