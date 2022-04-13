@@ -12,6 +12,8 @@
 /src/main/data/rumdetect2017.zip
 /src/main/result/textCNN/
 /.idea/libraries/rumdetect2017.xml
-/src/main/result/lstm_attention/
+/src/main/result/
 /src/main/GAN/pretrained_models/
 /src/main/GAN/pretrained_models_old/
+/src/main/GAN/4-12/
+/src/main/GAN/dataset/
