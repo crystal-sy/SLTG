@@ -124,6 +124,20 @@ def insert_news_comment(detail):
                 comtent_time = detail['created_at'], count = detail['like_count'])
     return execute_update_sql(sql)
 
+def query_news_comment(id):
+    sql = """select comment_text from sys_news_comment where news_id = '{}'""".format(id)
+    connection = pymysql.connect(**mysql_config)
+    content = []
+    try:
+        with connection.cursor() as cursor:
+            cursor.execute(sql)
+            for row in cursor.fetchall() :
+                content.append(row[0])
+            return content
+    finally:
+        connection.close()
+    return ''
+
 def getDetectionType(detectionPercent) :
     if detectionPercent == '':
         return "5"
