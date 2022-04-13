@@ -82,9 +82,8 @@ if __name__ == '__main__':
     args = parser.parse_args()
     print('Parameters:', args)
     
-    version = '2022-03-18-01-16'
+    version = '2022-04-13-14-45'
     x_test, y_test = preprocess("data/sentiment_test.csv",
-                                os.path.join(args.results_dir, version, "vocab.json"),
                                 args.padding_size, test=True)
     print("Loading model...")
     model = load_model(os.path.join(args.results_dir, version, 'TextCNN.h5'))

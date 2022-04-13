@@ -7,17 +7,12 @@ import tensorflow as tf
 from pprint import pprint
 import time
 
-from tensorflow.python.client import device_lib
 # 加载整个模型结构
 from tensorflow.keras.models import load_model
 # 自然语言处理NLP神器--gensim，词向量Word2Vec
 from matplotlib import pyplot as plt
 os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
 os.environ["CUDA_VISIBLE_DEVICES"]="-1"
-
-#def get_available_gpus():
-  #  local_device_protos = device_lib.list_local_devices()
-  #  return [x.name for x in local_device_protos if x.device_type == 'GPU']
 
 def train(x_train, y_train, vocab_size, feature_size, save_path):
     print("\nTrain...")
@@ -72,8 +67,6 @@ if __name__ == '__main__':
     os.mkdir(os.path.join(args.results_dir, timestamp))
     os.mkdir(os.path.join(args.results_dir, timestamp, 'log/'))
 
-    x_train, y_train, vocab_size = preprocess("data/sentiment_train.csv",
-                                              os.path.join(args.results_dir, timestamp, "vocab.json"),
-                                              args.padding_size)
+    x_train, y_train, vocab_size = preprocess("data/sentiment_train.csv", args.padding_size)
                                 
     train(x_train, y_train, vocab_size, args.padding_size, os.path.join(args.results_dir, timestamp))
