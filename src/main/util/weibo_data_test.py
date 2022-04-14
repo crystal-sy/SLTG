@@ -24,8 +24,11 @@ logger = logging.getLogger('spider')
 version = '2022-04-13-12-13'
 root_path = project_path + '/data/dataset/weibo/'
 results_dir = project_path + '/result/textCNN/'
-file_name = 'weibo'
 lstm_input = 128
+w2dic = None
+stop_words = None
+sl_model = None
+textCNN_model = None
 
 def file_jieba_cut(text):
     content_result = []
@@ -47,7 +50,6 @@ def jiebacut(text):
 
 # 去除停顿词
 def data_prepare(text):
-    stop_words = stop_words_list()
     content_result = []
     for document in text:
         ret = []
@@ -91,16 +93,13 @@ def transfer_word2vec(text, w2dic):
     return index
     
 def predict(id, content):
-    w2dic = get_w2dic()
     content_index = transfer_word2vec(content, w2dic)
-    model = load_model(sltg_config.lstm_path, custom_objects = {
-        'Self_Attention': Self_Attention})
     # 预测得到结果
-    result = model.predict(content_index)
+    result = sl_model.predict(content_index)
     #输出结果
     content_score = float('{:.2}'.format(result[0][0]))
+    logger.info(u'新闻内容检测结果:%s', content_score) 
     
-    textCNN_model = load_model(os.path.join(results_dir, version, 'TextCNN.h5'))
     comments = db.query_news_comment(id)
     i = len(comments)
     comment_score = float(0)
@@ -111,66 +110,42 @@ def predict(id, content):
             comment_score += float('{:.2}'.format(result[0]))
         comment_score = '{:.2}'.format(comment_score / i)
     else : 
-        comment_score = None
-    
+        comment_score = '##'
+    logger.info(u'新闻评论检测结果:%s', comment_score) 
     return str(content_score), comment_score
 
 if __name__ == '__main__':
+    w2dic = get_w2dic()
+    stop_words = stop_words_list()
+    sl_model = load_model(sltg_config.lstm_path, custom_objects = {
+        'Self_Attention': Self_Attention})
+    textCNN_model = load_model(os.path.join(results_dir, version, 'TextCNN.h5'))
+    
     real, fake = [], []
-    with open(root_path + file_name +".train", 'r', encoding='utf-8') as input:
+    logger.info(u'新闻检测开始') 
+    with open(root_path + "weibo.txt", 'r', encoding='utf-8') as input:
         for line in input.readlines():
             tid, content, label = line.strip().split("\t")
             try:
+                logger.info(u'新闻检测id:%s', tid) 
                 content_list = []
                 content_list.append(content)
                 content_result, comment_result = predict(tid, content_list)
                 if label == 'non-rumor' or label == 'true' :
-                    real.append(content_result + "\t" + comment_result)
-                elif label == 'false':
-                    fake.append(content_result + "\t" + comment_result)
-                else:
-                    print(label)
-            except Exception :
-                logger.error(u'train 评论检测异常:%s', tid) 
+                    real.append(tid + "\t" + content_result + "\t" + comment_result)
+                else :
+                    fake.append(tid + "\t" + content_result + "\t" + comment_result)
+            except Exception as e:
+                logger.error(u'新闻检测异常:%s', tid) 
+                logger.error(e)
             
-
-    with open(root_path + file_name +".dev", 'r', encoding='utf-8') as input:
-        for line in input.readlines():
-            tid, content, label = line.strip().split("\t")
-            try:
-                content_list = []
-                content_list.append(content)
-                content_result, comment_result = predict(tid, content_list)
-                if label == 'non-rumor' or label == 'true' :
-                    real.append(content_result + "\t" + comment_result)
-                elif label == 'false':
-                    fake.append(content_result + "\t" + comment_result)
-                else:
-                    print(label)
-            except Exception :
-                logger.error(u'dev 评论检测异常:%s', tid) 
-
-
-    with open(root_path + file_name +".test", 'r', encoding='utf-8') as input:
-        for line in input.readlines():
-            tid, content, label = line.strip().split("\t")
-            try:
-                content_list = []
-                content_list.append(content)
-                content_result, comment_result = predict(tid, content_list)
-                if label == 'non-rumor' or label == 'true' :
-                    real.append(content_result + "\t" + comment_result)
-                elif label == 'false':
-                    fake.append(content_result + "\t" + comment_result)
-                else:
-                    print(label)
-            except Exception :
-                logger.error(u'test 评论检测异常:%s', tid)
-                
-    rW = open(root_path + 'real_test.txt', 'a', encoding='UTF-8')
+    
+    logger.info(u'real检测结果写入')
+    rW = open(root_path + 'real_test.txt', 'w', encoding='UTF-8')
     rW.write('\n'.join(real))
     rW.close()
 
-    fW = open(root_path + 'fake_test.txt', 'a', encoding='UTF-8')
+    logger.info(u'fake检测结果写入')
+    fW = open(root_path + 'fake_test.txt', 'w', encoding='UTF-8')
     fW.write('\n'.join(fake))
     fW.close()
