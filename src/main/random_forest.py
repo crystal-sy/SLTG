@@ -5,29 +5,65 @@ Created on Tue Mar 15 21:28:06 2022
 @author: styra
 """
 import pandas as pd
-from sklearn.datasets import load_breast_cancer
 from sklearn.model_selection import train_test_split
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import accuracy_score
 import joblib
 import os
+import sys
+# 项目路径,将项目路径保存
+project_path = os.path.abspath(os.path.join(os.getcwd(), ".."))
+sys.path.append(project_path)
+
 import numpy as np
 
-rf_file='result/random_forest/randomForest.pkl'
- 
-#读入乳腺癌数据集
-data = load_breast_cancer()
-rows = []
-for row in data.data:
-    i = []
-    i.append(row[0])
-    i.append(row[1])
-    rows.append(i)
+from config import sltg_config as sltg_config
+import logging
+import logging.config
+import warnings
+
+warnings.filterwarnings("ignore")
     
+logging.config.fileConfig(sltg_config.logging_path)
+logger = logging.getLogger('spider')
+
+root_path = 'data/dataset/weibo/'
+rf_file= 'result/random_forest/randomForest.pkl'
+ 
+#读入数据集
+def loadfile():
+    #文件输入
+    neg = []
+    pos = []
+    with open(root_path + "real_test.txt", 'r', encoding='utf-8') as f:
+       for line in f.readlines():
+           scores = []
+           tid, content, comment = line.strip().split("\t")
+           if comment != '##':
+               scores.append(content)
+               scores.append(comment)
+               pos.append(scores)
+       f.close()
+        
+    with open(root_path + "fake_test.txt", 'r', encoding='utf-8') as f:
+        for line in f.readlines():
+            scores = []
+            tid, content, comment = line.strip().split("\t")
+            if comment != '##':
+                scores.append(content)
+                scores.append(comment)
+                neg.append(scores)
+        f.close()
+        
+    rows = np.concatenate((pos, neg)) #数组拼接
+    y = np.concatenate((np.ones(len(pos), dtype=int),
+                        np.zeros(len(neg), dtype=int))) #拼接全1和全0数组
+    return rows, y
+
+rows, y = loadfile()
 x = pd.DataFrame(rows)
-y = data.target
 #划分数据集
-X_train,X_test,y_train,y_test = train_test_split(x,y,random_state=0,test_size=0.3)
+X_train,X_test,y_train,y_test = train_test_split(x, y, test_size = 0.2)
 
 if os.path.exists(rf_file):
     model = joblib.load(rf_file)
