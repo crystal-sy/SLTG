@@ -127,7 +127,7 @@ if __name__ == '__main__':
         for line in input.readlines():
             tid, content, label = line.strip().split("\t")
             try:
-                logger.info(u'新闻检测id:%s', tid) 
+                logger.info(u'新闻检测id:%s, label:%s', tid, label) 
                 content_list = []
                 content_list.append(content)
                 content_result, comment_result = predict(tid, content_list)
@@ -139,7 +139,7 @@ if __name__ == '__main__':
                 logger.error(u'新闻检测异常:%s', tid) 
                 logger.error(e)
             
-    
+
     logger.info(u'real检测结果写入')
     rW = open(root_path + 'real_test.txt', 'w', encoding='UTF-8')
     rW.write('\n'.join(real))

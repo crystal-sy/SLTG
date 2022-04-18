@@ -20,6 +20,7 @@ def train(x_train, y_train, vocab_size, feature_size, save_path):
                     args.num_filters, args.filter_sizes, args.regularizes_lambda, args.dropout_rate)
     model.summary()
     # parallel_model = keras.utils.multi_gpu_model(model, gpus=2)
+    #model.compile()方法用于在配置训练方法时，告知训练时用的优化器、损失函数和准确率评测标准
     model.compile(tf.optimizers.Adam(), loss='categorical_crossentropy',
                            metrics=['accuracy'])
     keras.utils.plot_model(model, show_shapes=True, to_file=os.path.join(args.results_dir, timestamp, "model.pdf"))

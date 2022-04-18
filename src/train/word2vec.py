@@ -39,9 +39,9 @@ sys.setrecursionlimit(1000000)
 np.random.seed()
 
 # 参数配置
-cpu_count = multiprocessing.cpu_count() - 4  # 4CPU数量
+cpu_count = multiprocessing.cpu_count()  # 4CPU数量
 voc_dim = 128 # word的向量维度
-min_out = 3 # 单词出现次数
+min_out = 1 # 单词出现次数
 window_size = 5 # WordVec中的滑动窗口大小
 data_dir = project_path + os.sep + "data" + os.sep
 result_dir = project_path + os.sep + "result" + os.sep
