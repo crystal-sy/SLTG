@@ -4,10 +4,11 @@ Created on Tue Mar 15 21:28:06 2022
 
 @author: styra
 """
+import tensorflow as tf
 import pandas as pd
 from sklearn.model_selection import train_test_split
 from sklearn.ensemble import RandomForestClassifier
-from sklearn.metrics import accuracy_score
+from sklearn.metrics import accuracy_score, classification_report
 import joblib
 import os
 import sys
@@ -75,10 +76,10 @@ else:
     #min_samples_split：在树的节点分裂前所需的最少观察数。
     #min_samples_leaf：每棵树末端的叶节点所需的最少观察数。
     #bootstrap：是否使用 bootstrapping 来为随机林中的每棵树提供数据。（bootstrapping 是从数据集中进行替换的随机抽样。）
-    model = RandomForestClassifier(n_estimators=200,  max_features='sqrt', 
+    model = RandomForestClassifier(n_estimators=200,  max_features='sqrt',
                                    min_samples_leaf=50, min_samples_split=2, 
                                    bootstrap=True, n_jobs=1, random_state=1)
-    
+
 # 度量随机森林的准确性
 model = model.fit(X_train, y_train)
 # save model
@@ -94,3 +95,11 @@ print('Random Forest train/test accuracies %.3f/%.3f' % (tree_train, tree_test))
 #result = model.predict(pd.DataFrame(data.data[0].reshape(1,-1)))
 result = model.predict(pd.DataFrame(np.array(rows[0]).reshape(1,-1)))
 print(result[0])
+
+print("Test...")
+y_pred = model.predict(X_test)
+
+print('\nTest accuracy: {}\n'.format(accuracy_score(y_test, y_pred)))
+print('Classification report:')
+target_names = ['class {:d}'.format(i) for i in np.arange(2)]
+print(classification_report(y_test, y_pred, target_names=target_names, digits=4))
