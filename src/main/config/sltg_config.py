@@ -58,4 +58,7 @@ version = '20220412224218'
 w2dic_path = project_path + 'result' + os.sep + 'w2dic.npy'
 lstm_path = project_path + 'result' + os.sep + 'lstm_attention' + os.sep + version + os.sep + 'discriminator.h5'
 stop_words_path = project_path + 'data' + os.sep + 'stop_words.txt'
+textCNN_version = '2022-04-13-12-13'
+textCNN_path = project_path + 'result' + os.sep + 'textCNN' + os.sep + textCNN_version + os.sep + 'TextCNN.h5'
+random_forest_path = project_path + 'result' + os.sep + 'random_forest' + os.sep + 'randomForest.pkl'
 

@@ -12,9 +12,10 @@ from tensorflow.keras.models import load_model
 import time
 import re 
 import sys
-from config.sltg_config import stop_words_path, w2dic_path, lstm_path
+from config.sltg_config import stop_words_path, w2dic_path, lstm_path, textCNN_path, random_forest_path
 from self_attention import Self_Attention
 from tensorflow.keras.preprocessing import sequence
+import joblib
 
 lstm_input = 128 # lstm输入维度
 
@@ -127,8 +128,13 @@ class analysis():
             w2dic = self.get_w2dic()
         # 5、文本转关键词序列号数组
         content_index = self.data2index(w2dic, content_text)
-        index2 = sequence.pad_sequences(content_index,  padding='post', maxlen=lstm_input)
-        return index2
+        index_content = sequence.pad_sequences(content_index,  padding='post', maxlen=lstm_input)
+        
+        index_comment = []
+        if len(comment_text) > 0 :
+            comment_index = self.data2index(w2dic, comment_text)
+            index_comment = sequence.pad_sequences(comment_index,  padding='post', maxlen=lstm_input)
+        return index_content, index_comment
     
     def rumor_predict(self, content, comment):
         content = content.replace("\n", "")
@@ -137,7 +143,7 @@ class analysis():
             return "请输入新闻内容的文件路径"
         else :
             # 对数据做预处理，获取内容和评论的词向量
-            content_index = self.transfer_word2vec(content, comment)
+            content_index, comment_index = self.transfer_word2vec(content, comment)
             # 加载算法模型
             model = self.model
             if model is None:
@@ -146,8 +152,28 @@ class analysis():
             # 预测得到结果
             result = model.predict(content_index)
             #输出结果
-            score = result[0][0]
-            return '{:.2%}'.format(score)
+            content_score = '{:.2}'.format(result[0][0])
+            print('新闻内容检测结果:', content_score)
+            
+            i = len(comment_index)
+            comment_score = float(0)
+            if i != 0 :
+                textCNN_model = load_model(textCNN_path)
+                results = textCNN_model.predict(comment_index)
+                for result in results:
+                    comment_score += float('{:.2}'.format(result[0]))
+                comment_score = '{:.2}'.format(comment_score / i)
+                print('新闻评论检测结果:', comment_score) 
+                
+                random_forest_model = joblib.load(random_forest_path)
+                score = []
+                score.append(content_score)
+                score.append(comment_score)
+                scores = []
+                scores.append(score)
+                result = random_forest_model.predict(scores)
+                return result[0]
+        return content_score
         
     def main(self):
         try:
