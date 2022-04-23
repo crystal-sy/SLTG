@@ -261,7 +261,7 @@ def train_lstm(embedding_weights, x_train, y_train, x_test, y_test, y_test_1, ve
     with open(sl_result_dir + 'lstm.yml', 'w') as outfile:
         outfile.write(yaml.dump(yaml_string, default_flow_style=True))
     model.save(sl_result_dir + 'lstm.h5')
-    # kerasUtils.plot_model(model, to_file = result_dir + 'model.png')
+    kerasUtils.plot_model(model, to_file = result_dir + 'model.png', show_shapes=True)
     
     # 展开模型参数
     loadModel = load_model(sl_result_dir + 'lstm.h5', custom_objects = {
