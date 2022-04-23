@@ -5,6 +5,11 @@ Created on Thu Nov 25 22:36:34 2021
 @author: styra
 """
 import pymysql
+import os
+import sys
+# 项目路径,将项目路径保存
+project_path = os.path.abspath(os.path.join(os.getcwd(), ".."))
+sys.path.append(project_path)
 
 from config import sltg_config as config
 import logging
