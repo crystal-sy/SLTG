@@ -7,6 +7,7 @@ project_path = os.path.abspath(os.path.join(os.getcwd(), ".."))
 sys.path.append(project_path)
 
 from self_attention import Self_Attention
+import tensorflow as tf
 
 model_dir = project_path + '\\result\\lstm_attention\\'
 
@@ -35,7 +36,8 @@ class Discriminator:
         self.version = version
 
     def train(self, dataset, num_epochs, num_steps, **kwargs):
-        return self.d_model.fit(dataset.repeat(num_epochs), verbose=1, epochs=num_epochs, steps_per_epoch=num_steps,
+        tf_callback = tf.keras.callbacks.TensorBoard(log_dir="D:\\log")
+        return self.d_model.fit(dataset.repeat(num_epochs), verbose=1, epochs=num_epochs, steps_per_epoch=num_steps, callbacks=[tf_callback],
                                 **kwargs)
 
     def save(self, filename):

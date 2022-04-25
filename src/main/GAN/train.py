@@ -55,7 +55,7 @@ if __name__ == "__main__":
     # 那么我们要开始进行训练了。 规则： 训练生成器一次； 训练辨别器五次。
     for epoch in range(config.EPOCH_NUM):
         logger.info(u'Generator: %s', epoch)
-        for it in range(1):
+        for it in range(3):
             samples = generator.generate_one_batch()
             logger.info(u'samples: %s', epoch)
             #基于生成器生成的数据和判别器计算rewards。
@@ -68,7 +68,7 @@ if __name__ == "__main__":
         rollout.update_params()
 
         logger.info(u'Discriminator: %s', epoch)
-        for i in range(5):
+        for i in range(1):
             # 根据训练的生成器模型，生成句子。
             generator.generate_samples(num_steps, config.fake_file)
             logger.info(u'generate_samples: %s', i)

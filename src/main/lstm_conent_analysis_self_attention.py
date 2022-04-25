@@ -233,9 +233,10 @@ def train_lstm(embedding_weights, x_train, y_train, x_test, y_test, y_test_1, ve
     # np.random.seed(200)
     # np.random.shuffle(y_train)
  
+    tf_callback = tf.keras.callbacks.TensorBoard(log_dir="D:\\logs")
     h = model.fit(x_train, y_train, batch_size=batch_size, epochs=epoch_time, 
               verbose=1,
-              validation_split = 0.2)
+              validation_split = 0.2, callbacks=[tf_callback])
     
     plt.plot(h.history["loss"],label="train_loss")
     plt.plot(h.history["val_loss"],label="val_loss")

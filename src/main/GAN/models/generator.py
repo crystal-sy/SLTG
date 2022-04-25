@@ -39,7 +39,8 @@ class Generator(RNN):
     def pretrain(self, dataset, num_epochs, num_steps):
         ds = dataset.map(lambda x: (tf.pad(x[:, 0:-1], ([0, 0], [1, 0]), "CONSTANT", 0), x)).repeat(
             num_epochs)
-        pretrain_loss = self.generator_model.fit(ds, verbose=1, epochs=num_epochs, steps_per_epoch=num_steps)
+        tf_callback = tf.keras.callbacks.TensorBoard(log_dir="D:\\log")
+        pretrain_loss = self.generator_model.fit(ds, verbose=1, epochs=num_epochs, steps_per_epoch=num_steps, callbacks=[tf_callback])
         logger.info(u'Pretrain generator loss: : %s', pretrain_loss)
         return pretrain_loss
 
